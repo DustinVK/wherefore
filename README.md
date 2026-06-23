@@ -19,8 +19,8 @@ consuming project's repo, version-controlled and PR-reviewable next to the code.
 ## Install (for users of this marketplace)
 
 ```
-/plugin marketplace add YOUR_HANDLE/discussion-log-marketplace
-/plugin install team-discussion-log@your-marketplace
+/plugin marketplace add DustinVK/discussion-log
+/plugin install team-discussion-log@dustinvk
 ```
 
 Restart Claude Code once after installing so the new skills are picked up. On
@@ -53,7 +53,7 @@ files), or says it found nothing.
 ## Repo layout
 
 ```
-discussion-log-marketplace/
+discussion-log/
 ├── .claude-plugin/
 │   └── marketplace.json               # the registry
 ├── .github/
@@ -77,18 +77,13 @@ discussion-log-marketplace/
 
 ## Publishing this yourself
 
-1. Find-and-replace the placeholders `YOUR_NAME`, `you@example.com`,
-   `YOUR_HANDLE`, and the marketplace `name` (`your-marketplace`) across
-   `marketplace.json`, `plugin.json`, and this README. Marketplace and plugin
-   names must be **kebab-case** (lowercase letters, digits, hyphens) or the
-   Claude.ai marketplace sync will reject them.
-2. Validate locally: `claude plugin validate ./plugins/team-discussion-log`
+1. Validate locally: `claude plugin validate ./plugins/team-discussion-log`
    (a GitHub Actions workflow also runs this on every push and pull request, so
    a future edit can't quietly break the manifest for people who've installed it).
-3. Test locally before pushing: `/plugin marketplace add ./` from this repo,
-   then `/plugin install team-discussion-log@your-marketplace`.
-4. Create a GitHub repo named `discussion-log-marketplace`, push, done — users
-   add it with `/plugin marketplace add YOUR_HANDLE/discussion-log-marketplace`.
+2. Test locally before pushing: `/plugin marketplace add ./` from this repo,
+   then `/plugin install team-discussion-log@dustinvk`.
+3. Push to github.com/DustinVK/discussion-log — users add it with
+   `/plugin marketplace add DustinVK/discussion-log`.
    Updates are just commits; users run `/plugin marketplace update` to refresh.
 
 Private repo? Auto-updates need a `GITHUB_TOKEN` / `GH_TOKEN` in the environment.

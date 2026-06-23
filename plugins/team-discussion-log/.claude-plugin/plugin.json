@@ -3,9 +3,9 @@
   "description": "Capture technical discussions (Slack huddles, design talks, meetings) into a compact, tagged, repo-committed log, and answer 'why did we build it this way?' by searching it. Ships two skills (discussion-log, discussion-read) and a /seed-topics command that bootstraps the tag vocabulary from the codebase.",
   "version": "0.1.0",
   "author": {
-    "name": "YOUR_NAME"
+    "name": "Dustin VanKrimpen"
   },
-  "homepage": "https://github.com/YOUR_HANDLE/discussion-log-marketplace",
+  "homepage": "https://dustinvk.com/projects/discussion-log",
   "license": "MIT",
   "keywords": ["decision-log", "adr", "documentation", "knowledge-base"]
 }

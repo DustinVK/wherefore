@@ -24,16 +24,13 @@ CI (`.github/workflows/validate-plugins.yml`) runs both JSON checks and `claude 
 
 ## Publishing / setup
 
-Before pushing to a new GitHub repo, find-and-replace all placeholders in `marketplace.json`, `plugin.json`, and `README.md`:
-- `YOUR_NAME`, `you@example.com`, `YOUR_HANDLE`, `your-marketplace`
-
 Marketplace and plugin names must be **kebab-case** — the Claude.ai sync rejects anything else.
 
 To test locally before pushing:
 ```bash
 # From this repo's root
 /plugin marketplace add ./
-/plugin install team-discussion-log@your-marketplace
+/plugin install team-discussion-log@dustinvk
 ```
 
 ## Repo structure and how pieces fit together
