@@ -4,20 +4,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-A Claude Code plugin marketplace. It hosts the `team-discussion-log` plugin, which ships two skills and a command for capturing technical decisions into a repo-committed log and querying them later. The marketplace itself has no build system, tests, or runtime — the only "code" is JSON manifests, Markdown skill/command definitions, and a GitHub Actions CI workflow.
+A Claude Code plugin marketplace. It hosts the `discussion-log` plugin, which ships two skills and a command for capturing technical decisions into a repo-committed log and querying them later. The marketplace itself has no build system, tests, or runtime — the only "code" is JSON manifests, Markdown skill/command definitions, and a GitHub Actions CI workflow.
 
 ## Validation
 
 ```bash
 # Validate a single plugin
-claude plugin validate ./plugins/team-discussion-log
+claude plugin validate ./plugins/discussion-log
 
 # Validate the whole marketplace
 claude plugin validate .
 
 # Check JSON syntax (what CI does first)
 python3 -m json.tool .claude-plugin/marketplace.json
-python3 -m json.tool plugins/team-discussion-log/.claude-plugin/plugin.json
+python3 -m json.tool plugins/discussion-log/.claude-plugin/plugin.json
 ```
 
 CI (`.github/workflows/validate-plugins.yml`) runs both JSON checks and `claude plugin validate` on every push and PR.
@@ -30,14 +30,14 @@ To test locally before pushing:
 ```bash
 # From this repo's root
 /plugin marketplace add ./
-/plugin install team-discussion-log@dustinvk
+/plugin install discussion-log@dustinvk
 ```
 
 ## Repo structure and how pieces fit together
 
 ```
 .claude-plugin/marketplace.json       # registry: lists plugins by name + source path
-plugins/team-discussion-log/
+plugins/discussion-log/
   .claude-plugin/plugin.json          # plugin manifest (name, version, author, license)
   CLAUDE.snippet.md                   # pasted into a consuming project's CLAUDE.md to
                                       # make Claude offer to log decisions automatically

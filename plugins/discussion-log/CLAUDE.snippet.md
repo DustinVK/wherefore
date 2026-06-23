@@ -1,5 +1,5 @@
 <!--
-Setup snippet for the team-discussion-log plugin.
+Setup snippet for the discussion-log plugin.
 
 Paste the block below (everything between the markers) into your project's
 CLAUDE.md, once per repo. It makes Claude OFFER to log decisions as they happen,
@@ -16,7 +16,7 @@ surfaced to you instead of treated as context.
 ## Discussion log
 
 This repo keeps a discussion log in `discussions/`, managed by the
-team-discussion-log plugin. When a working session reaches a decision worth
+discussion-log plugin. When a working session reaches a decision worth
 keeping — an approach chosen, a tradeoff resolved, an alternative rejected —
 offer to capture it: ask "Want me to add this to the discussion log?" and, if
 yes, use the `discussion-log` skill. Only log actual decisions and their

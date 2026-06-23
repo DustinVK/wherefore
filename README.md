@@ -1,7 +1,7 @@
 # Discussion Log — a Claude Code plugin marketplace
 
 A self-hosted [Claude Code](https://code.claude.com) plugin marketplace that
-distributes **team-discussion-log**: two skills for capturing the useful residue
+distributes **discussion-log**: two skills for capturing the useful residue
 of technical discussions and querying it later.
 
 - **`discussion-log`** — distills a (raw or AI-generated) discussion summary into
@@ -20,7 +20,7 @@ consuming project's repo, version-controlled and PR-reviewable next to the code.
 
 ```
 /plugin marketplace add DustinVK/discussion-log
-/plugin install team-discussion-log@dustinvk
+/plugin install discussion-log@dustinvk
 ```
 
 Restart Claude Code once after installing so the new skills are picked up. On
@@ -36,7 +36,7 @@ First-time setup in a project (optional but recommended):
    makes Claude *offer* to log a decision when a session reaches one — capturing
    becomes a "yes" instead of a chore someone has to remember, which is the
    single biggest driver of whether the log actually gets used.
-2. Run `/team-discussion-log:seed-topics` and Claude inspects the codebase —
+2. Run `/discussion-log:seed-topics` and Claude inspects the codebase —
    module layout, routes, dependency manifests, migrations — and proposes a
    starter set of **areas** and **topics**, with a short justification for each
    tag. Confirm or edit its proposal and it writes (or merges into)
@@ -60,7 +60,7 @@ discussion-log/
 │   └── workflows/
 │       └── validate-plugins.yml       # CI: validates manifests + plugin on every push
 ├── plugins/
-│   └── team-discussion-log/
+│   └── discussion-log/
 │       ├── .claude-plugin/
 │       │   └── plugin.json            # plugin manifest
 │       ├── CLAUDE.snippet.md          # paste into a project's CLAUDE.md (opt-out logging)
@@ -77,11 +77,11 @@ discussion-log/
 
 ## Publishing this yourself
 
-1. Validate locally: `claude plugin validate ./plugins/team-discussion-log`
+1. Validate locally: `claude plugin validate ./plugins/discussion-log`
    (a GitHub Actions workflow also runs this on every push and pull request, so
    a future edit can't quietly break the manifest for people who've installed it).
 2. Test locally before pushing: `/plugin marketplace add ./` from this repo,
-   then `/plugin install team-discussion-log@dustinvk`.
+   then `/plugin install discussion-log@dustinvk`.
 3. Push to github.com/DustinVK/discussion-log — users add it with
    `/plugin marketplace add DustinVK/discussion-log`.
    Updates are just commits; users run `/plugin marketplace update` to refresh.

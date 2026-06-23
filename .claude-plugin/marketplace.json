@@ -10,8 +10,8 @@
   },
   "plugins": [
     {
-      "name": "team-discussion-log",
-      "source": "./plugins/team-discussion-log",
+      "name": "discussion-log",
+      "source": "./plugins/discussion-log",
       "description": "Capture technical discussions into a searchable, repo-committed log and query the rationale later."
     }
   ]
