@@ -1,5 +1,14 @@
 # Discussion Log — a Claude Code plugin marketplace
 
+Feed it a discussion — raw notes, a transcript, an AI-generated summary, a
+Slack thread — and it outputs condensed log files capturing what was decided,
+why, and what was rejected. Unresolved questions get extracted into a
+`QUESTIONS.md` registry so nothing falls through the cracks. An `INDEX.md`
+keeps everything scannable by LLMs, making past decisions easy to query later
+without re-reading the whole log.
+
+## In Detail
+
 A self-hosted [Claude Code](https://code.claude.com) plugin marketplace that
 distributes **discussion-log**: three skills for capturing the useful residue
 of technical discussions, querying it later, and closing out open questions.
