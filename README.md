@@ -62,8 +62,9 @@ Both steps are optional — the log still works without them; the trigger just
 becomes manual and the vocabulary grows organically as you log.
 
 End of a huddle — paste the summary and say *"log this discussion"*.
-`discussion-log` distills it, tags it, and writes one entry per independent
-decision thread under `discussions/log/`. If the discussion leaves genuine
+`discussion-log` distills it, tags it, and writes one file per independently-queryable
+decision thread under `discussions/log/` — a long, meandering discussion can produce
+several files if its threads are unrelated enough to be searched separately. If the discussion leaves genuine
 unresolved questions, they land in `discussions/QUESTIONS.md` with IDs like
 Q-001, Q-002 — prefixed in the entry so nothing gets lost.
 
@@ -116,7 +117,7 @@ Each consuming project's log lives in its own repo, not here:
     ├── topics.md         # controlled tag vocabulary (areas + topics)
     ├── QUESTIONS.md      # open/resolved question registry (created on first open question)
     └── log/
-        └── YYYY-MM-DD-short-slug.md   # one file per discussion thread
+        └── YYYY-MM-DD-short-slug.md   # one file per independently-queryable thread
 ```
 
 ## Publishing this yourself
