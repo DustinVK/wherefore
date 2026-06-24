@@ -26,15 +26,18 @@ All entries live under a repo-relative `discussions/` directory:
 ```
 discussions/
 ├── INDEX.md                      # one line per entry; maintained by THIS skill
+├── QUESTIONS.md                  # one-line-per-question index
 ├── topics.md                     # controlled topic vocabulary (canonical tags)
-├── QUESTIONS.md                  # open questions registry
+├── questions/
+│   └── Q-NNN.md                  # one file per question
 └── log/
     └── YYYY-MM-DD-short-slug.md  # one file per discussion
 ```
 
 If `discussions/` does not exist yet, create it along with `discussions/log/`,
-an empty `INDEX.md`, an empty QUESTIONS.md, and a starter `topics.md`. Never invent a second log
-location — if the user's repo already has `discussions/`, use it.
+`discussions/questions/`, an empty `INDEX.md`, an empty `QUESTIONS.md`, and a
+starter `topics.md`. Never invent a second log location — if the user's repo
+already has `discussions/`, use it.
 
 ## Entry file format
 
@@ -134,34 +137,47 @@ long, compress harder; do not transcribe.
    not `discussion-about-the-auth-stuff`). If a file with that name exists,
    append a short disambiguating suffix rather than overwriting.
 
-7b. **Register open questions.** For each item in the "Open questions / follow-ups"
-    section that is a genuine unresolved question (not "None"):
-    - Read `discussions/QUESTIONS.md` to find the highest existing Q-ID and
-      increment it. If QUESTIONS.md doesn't exist, create it with a `# Questions`
-      heading and start at Q-001.
-    - Prefix the item in the discussion entry with its ID: `- Q-001: How should we…`
-    - Append a new entry to QUESTIONS.md:
+7b. **Register open questions.** For each genuine unresolved question in the
+    "Open questions / follow-ups" section:
+    - Determine the next Q-ID by reading `QUESTIONS.md` (find the highest existing
+      Q-NNN and increment). If `QUESTIONS.md` doesn't exist yet, start at Q-001
+      and create the file with a `# Questions` heading.
+    - Prefix the item in the discussion entry with the ID: `- Q-001: How should we…`
+    - Create `discussions/questions/Q-NNN.md` with this exact frontmatter (leave
+      `resolution` and `resolution_slug` blank):
       ```
-      ## Q-001 — <question text>
-      - **Status:** open
-      - **Areas:** [<same areas as this discussion>]
-      - **Asked:** YYYY-MM-DD | [<slug>](log/<slug>.md)
-      - **Resolution:** —
+      ---
+      id: Q-001
+      question: How should we handle tax for EU buyers?
+      status: open
+      areas: [international-shipping, price-calculator]
+      asked_date: YYYY-MM-DD
+      asked_slug: 2026-06-23-rls-tenant-isolation
+      resolution:
+      resolution_slug:
+      ---
+      ```
+    - Append one line to `QUESTIONS.md`:
+      ```
+      - Q-001 | open | YYYY-MM-DD | asked_slug | question text | areas: area1, area2
       ```
     Include the Q-IDs assigned in the report-back (step 9).
 
-7c. **Resolve any open questions this discussion answers.** If QUESTIONS.md exists
-    and has open entries:
-    - Filter candidates by matching area/topic overlap with this discussion, or
-      by recognizing question text that the source material explicitly addresses.
+7c. **Resolve any open questions this discussion answers.** If
+    `discussions/questions/` exists and contains files with `status: open`:
+    - Filter candidates whose areas overlap with the current discussion's
+      areas/topics, or whose question text the source material explicitly addresses.
     - Present the shortlist to the user: "This discussion may answer these open
       questions — which (if any) are now resolved?" Do not auto-close without
       confirmation.
     - For each confirmed resolution:
-      - In QUESTIONS.md, change `**Status:** open` → `**Status:** resolved` and
-        fill in `**Resolution:** <one-sentence answer> | [<new-slug>](log/<new-slug>.md)`
+      - Edit the `Q-NNN.md` frontmatter: set `status: resolved`, fill in
+        `resolution` (one-sentence answer), set `resolution_slug` to the new
+        entry's slug.
+      - Update the corresponding line in `QUESTIONS.md`: change `open` to
+        `resolved`.
       - Note the closure in the report-back (step 9): "Closed: Q-002, Q-005."
-    - If no candidates match, skip this step silently.
+    - If no candidates match, skip silently.
 
 8. **Update `INDEX.md`.** Append one line so the read skill can shortlist without
    opening files. Format:
@@ -194,8 +210,10 @@ tell the user both files were touched.
 **Example 3 — discussion without a decision**
 Input: a long thread weighing GraphQL caching options with no conclusion.
 Output: an entry whose Decisions section says "No decision — see Open questions",
-with the contenders captured under Open questions / follow-ups so the next
-discussion has the context.
+with the contenders captured under Open questions / follow-ups. Each unresolved
+question becomes an individual file in `discussions/questions/` (e.g.
+`Q-001.md`) and a one-line entry in `QUESTIONS.md`, so the next discussion can
+close them out explicitly.
 
 **Example 4 — long meandering discussion, two independent threads**
 Input: a 30-message thread that covers (a) switching the order PDF renderer and
