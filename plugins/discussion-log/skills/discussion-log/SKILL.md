@@ -150,6 +150,19 @@ long, compress harder; do not transcribe.
       ```
     Include the Q-IDs assigned in the report-back (step 9).
 
+7c. **Resolve any open questions this discussion answers.** If QUESTIONS.md exists
+    and has open entries:
+    - Filter candidates by matching area/topic overlap with this discussion, or
+      by recognizing question text that the source material explicitly addresses.
+    - Present the shortlist to the user: "This discussion may answer these open
+      questions — which (if any) are now resolved?" Do not auto-close without
+      confirmation.
+    - For each confirmed resolution:
+      - In QUESTIONS.md, change `**Status:** open` → `**Status:** resolved` and
+        fill in `**Resolution:** <one-sentence answer> | [<new-slug>](log/<new-slug>.md)`
+      - Note the closure in the report-back (step 9): "Closed: Q-002, Q-005."
+    - If no candidates match, skip this step silently.
+
 8. **Update `INDEX.md`.** Append one line so the read skill can shortlist without
    opening files. Format:
    ```
