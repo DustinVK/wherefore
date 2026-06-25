@@ -4,11 +4,13 @@ title: Rebrand to lore with plain-verb skill names
 areas: [branding]
 topics: [naming]
 stories: []
-status: active
+status: superseded
 supersedes:
-superseded-by:
-superseded-date:
+superseded-by: 2026-06-25-rename-to-wherefore
+superseded-date: 2026-06-25
 ---
+
+SUPERSEDED 2026-06-25 -> see 2026-06-25-rename-to-wherefore. Kept for history, not current.
 
 ## Summary
 Renamed the product from discussion-log to lore, with an evocative brand for the
