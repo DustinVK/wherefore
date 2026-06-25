@@ -19,4 +19,5 @@ One line per entry below. Maintained by the capture skill.
 - 2026-06-25 | 2026-06-25-agents-md-cross-tool | AGENTS.md as cross-tool wherefore spec | areas: plugin, repo-structure | topics: docs, skill-structure, cross-tool | stories: none | active
 - 2026-06-25 | 2026-06-25-no-file-url-serving | No file:// support; serve the build over HTTP | areas: dashboard | topics: distribution, build | stories: none | active
 - 2026-06-25 | 2026-06-25-dashboard-dev-fixes | Fix tsconfig and Vite fs.allow in dev mode | areas: dashboard | topics: build | stories: none | active
+- 2026-06-25 | 2026-06-25-todo-list-out-of-scope | To-do list feature is out of scope | areas: plugin | topics: positioning | stories: none | active
 

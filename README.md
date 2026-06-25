@@ -6,10 +6,41 @@
 
 # wherefore
 
-The why behind your code. wherefore is an open, plain-markdown record of the
-reasoning behind your technical decisions: what you chose, why, and what you ruled
-out, captured in your own repo. No cloud, no database, no vector store, no lock-in.
-Because the data is just files, any tool or any person can read it.
+The why behind your code. Capture the reasoning behind your technical decisions,
+what you chose, why, and what you ruled out, as plain markdown that lives in your
+repo.
+
+## Quick start
+
+**1. Add the plugin to Claude Code:**
+
+```
+/plugin marketplace add DustinVK/wherefore
+/plugin install wherefore@dustinvk
+```
+
+**2. Capture a decision.** Paste your meeting notes, a transcript, or a Slack
+thread into Claude and say `log this discussion` (or run `/wherefore:capture`).
+wherefore distills it into a tagged markdown entry in your repo: what was decided,
+why, and what was ruled out.
+
+**3. (Optional) Browse it as a dashboard:**
+
+```
+npx @dustinvk/wherefore-dashboard dev
+```
+
+This renders your `wherefore/` directory as a local site. No install needed.
+
+That's it. The rest of this README is detail for when you want it.
+
+---
+
+## What it is
+
+wherefore is an open, plain-markdown record of the reasoning behind your technical
+decisions. No cloud, no database, no vector store, no lock-in. Because the data is
+just files in your repo, any tool or any person can read it.
 
 There are three ways to work with it:
 
@@ -87,20 +118,7 @@ from any directory containing a `wherefore/` folder. See the
 [package README](packages/wherefore-dashboard/README.md) for build options, local
 preview, and deploying to Cloudflare Pages.
 
-## Install the plugin
-
-```
-/plugin marketplace add DustinVK/wherefore
-/plugin install wherefore@dustinvk
-```
-
-Restart Claude Code once after installing so the new skills are picked up. On
-first use in a project, `capture` scaffolds a `wherefore/` folder (`INDEX.md`,
-`QUESTIONS.md`, a starter `topics.md`, a `log/` subdirectory, and a `questions/`
-subdirectory) in that repo. The plugin ships the tooling; the log itself is
-per-project data.
-
-### Usage
+## Setup tips
 
 First-time setup in a project (optional but recommended):
 
@@ -114,6 +132,14 @@ First-time setup in a project (optional but recommended):
 
 Both steps are optional. The log still works without them; the trigger just
 becomes manual and the vocabulary grows organically as you go.
+
+On first use in a project, `capture` scaffolds a `wherefore/` folder (`INDEX.md`,
+`QUESTIONS.md`, a starter `topics.md`, a `log/` subdirectory, and a `questions/`
+subdirectory) in that repo. The plugin ships the tooling; the log itself is
+per-project data. Restart Claude Code once after installing so the new skills are
+picked up.
+
+## How a session flows
 
 End of a huddle: paste the summary and say "log this discussion". `capture`
 distills it, tags it, and writes one file per independently-queryable decision
