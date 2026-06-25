@@ -21,3 +21,4 @@ of the product) and Topics (cross-cutting concerns). Keep these coarse and stabl
 - docs -- documentation decisions
 - skill-structure -- how skills are split and organized
 - build -- build pipeline and Astro integration
+- visual-identity -- logo, wordmark, palette, and brand asset decisions
