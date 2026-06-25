@@ -25,7 +25,7 @@ jobs:
           echo "Checking marketplace.json..."
           python3 -m json.tool .claude-plugin/marketplace.json > /dev/null
           echo "Checking plugin.json..."
-          python3 -m json.tool plugins/lore/.claude-plugin/plugin.json > /dev/null
+          python3 -m json.tool plugins/wherefore/.claude-plugin/plugin.json > /dev/null
           echo "JSON OK"
 
       - name: Set up Node.js
@@ -37,7 +37,7 @@ jobs:
         run: npm install -g @anthropic-ai/claude-code
 
       - name: Validate plugin
-        run: claude plugin validate ./plugins/lore
+        run: claude plugin validate ./plugins/wherefore
 
       - name: Validate marketplace
         run: claude plugin validate .

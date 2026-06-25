@@ -1,0 +1,34 @@
+{
+  "name": "@dustinvk/wherefore-dashboard",
+  "version": "0.1.0",
+  "description": "Build tool that reads a wherefore/ directory and emits a static dashboard.",
+  "type": "module",
+  "bin": {
+    "wherefore-dashboard": "bin/wherefore-dashboard.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "astro.config.mjs"
+  ],
+  "scripts": {
+    "dev": "node bin/wherefore-dashboard.js dev",
+    "build": "node bin/wherefore-dashboard.js build --src tests/fixtures/wherefore --out .test-dist",
+    "test": "node --test tests/fixture-check.mjs tests/cli.test.js"
+  },
+  "dependencies": {
+    "astro": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DustinVK/wherefore.git",
+    "directory": "packages/wherefore-dashboard"
+  },
+  "license": "MIT"
+}

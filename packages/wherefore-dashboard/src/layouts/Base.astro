@@ -1,0 +1,81 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  pageTitle?: string;
+}
+
+const siteTitle = process.env.WHEREFORE_TITLE ?? 'wherefore';
+const { pageTitle } = Astro.props;
+const docTitle = pageTitle ? `${pageTitle} — ${siteTitle}` : siteTitle;
+const path = Astro.url.pathname;
+
+const nav = [
+  { href: '/log',       label: 'Log' },
+  { href: '/questions', label: 'Questions' },
+  { href: '/tags',      label: 'Tags' },
+];
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{docTitle}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script>
+    (function(){
+      var s = localStorage.getItem('wherefore-theme');
+      var t = s || (matchMedia('(prefers-color-scheme:light)').matches ? 'light' : 'dark');
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/" class="wordmark">
+        <span class="prompt">&gt;</span>&nbsp;{siteTitle}<span class="cursor"></span>
+      </a>
+      <nav class="header-nav">
+        <ul class="nav-links">
+          {nav.map(({ href, label }) => (
+            <li>
+              <a
+                href={href}
+                class:list={{ 'nav-active': path === href || path.startsWith(href + '/') }}
+              >
+                {label}
+              </a>
+            </li>
+          ))}
+        </ul>
+        <button id="theme-toggle" class="theme-toggle" aria-label="toggle theme"></button>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <slot />
+  </main>
+  <script>
+    (function(){
+      var btn = document.getElementById('theme-toggle');
+      function current() { return document.documentElement.getAttribute('data-theme') || 'dark'; }
+      function setTheme(t, save) {
+        document.documentElement.setAttribute('data-theme', t);
+        btn.setAttribute('aria-label', t === 'dark' ? 'switch to light theme' : 'switch to dark theme');
+        if (save) localStorage.setItem('wherefore-theme', t);
+      }
+      setTheme(current(), false);
+      btn.addEventListener('click', function() {
+        setTheme(current() === 'dark' ? 'light' : 'dark', true);
+      });
+      matchMedia('(prefers-color-scheme:light)').addEventListener('change', function(e) {
+        if (!localStorage.getItem('wherefore-theme')) setTheme(e.matches ? 'light' : 'dark', false);
+      });
+    })();
+  </script>
+</body>
+</html>
