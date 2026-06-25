@@ -11,78 +11,58 @@ const { entry } = Astro.props;
 const { Content } = await render(entry);
 
 const allEntries = await getCollection('log');
-const replacement = entry.data.supersededBy
-  ? allEntries.find(e => e.id === entry.data.supersededBy) ?? null
-  : null;
 
-const { status, supersededBy, supersededDate } = entry.data;
-const isRetired = status !== 'active';
+const { status, supersededBy, supersededDate, supersedes } = entry.data;
+const replacement = supersededBy ? allEntries.find(e => e.id === supersededBy) ?? null : null;
+const prev        = supersedes   ? allEntries.find(e => e.id === supersedes)   ?? null : null;
 ---
 <Base pageTitle={entry.data.title}>
-  <a href="/log" class="back-link">&larr; Log</a>
+  <a href="/log" class="back-link"><span class="arrow">&larr;</span> back to log</a>
 
   {status === 'superseded' && (
-    <div class="status-banner status-banner--superseded">
-      <strong>Superseded</strong>
-      {supersededDate && <span>on {supersededDate}</span>}
+    <div class="callout">
+      Superseded{supersededDate ? ` on ${supersededDate}` : ''}.
+      {' '}Current decision:{' '}
       {replacement
-        ? <span>&mdash; replaced by <a href={`/log/${supersededBy}`}>{replacement.data.title}</a></span>
-        : supersededBy && <span>&mdash; see <code>{supersededBy}</code></span>
+        ? <a href={`/log/${supersededBy}`}>{replacement.data.title}</a>
+        : <span>{supersededBy ?? 'unknown'}</span>
       }
     </div>
   )}
 
   {status === 'obsolete' && (
-    <div class="status-banner status-banner--obsolete">
-      <strong>Obsolete</strong>
-      {supersededDate && <span>since {supersededDate}</span>}
-      <span>&mdash; retired without replacement</span>
+    <div class="callout callout-obs">
+      Obsolete{supersededDate ? ` since ${supersededDate}` : ''}.
+      Retired without replacement.
     </div>
   )}
 
-  <div class="entry-header">
-    <h1>{entry.data.title}</h1>
-    <div class="entry-meta">
-      <span class="entry-date">{entry.data.date}</span>
-      {entry.data.areas.map(a => <span class="chip chip--area">{a}</span>)}
-      {entry.data.topics.map(t => <span class="chip">{t}</span>)}
-      {entry.data.stories.length > 0 && entry.data.stories.map(s => (
-        <span class="chip">{s}</span>
-      ))}
-    </div>
+  <h1 class="detail-title">{entry.data.title}</h1>
+
+  <div class="detail-meta">
+    <span class="dt">{entry.data.date}</span>
+    {entry.data.areas.map(a => <span class="tag tag-area">{a}</span>)}
+    {entry.data.topics.map(t => <span class="tag tag-topic">{t}</span>)}
+    {entry.data.stories.map(s => <span class="tag tag-topic">{s}</span>)}
   </div>
 
   <div class="entry-body" id="entry-body">
     <Content />
   </div>
 
-  {entry.data.supersedes && (
+  {prev && (
     <p class="supersedes-note">
-      Supersedes:
-      {(() => {
-        const prev = allEntries.find(e => e.id === entry.data.supersedes);
-        return prev
-          ? <a href={`/log/${entry.data.supersedes}`}>{prev.data.title}</a>
-          : <code>{entry.data.supersedes}</code>;
-      })()}
+      Supersedes: <a href={`/log/${supersedes}`}>{prev.data.title}</a>
     </p>
+  )}
+  {!prev && supersedes && (
+    <p class="supersedes-note">Supersedes: <code>{supersedes}</code></p>
   )}
 </Base>
 
-<style>
-  .supersedes-note {
-    margin-top: 2rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border);
-    font-size: 0.8125rem;
-    color: var(--text-muted);
-  }
-  .supersedes-note a, .supersedes-note code { font-size: inherit; }
-</style>
-
 <script is:inline>
-  // Strip skill-written SUPERSEDED/OBSOLETE plain-text banner line from body
-  // (the styled banner above already shows this info from frontmatter)
+  // Strip the skill-written SUPERSEDED/OBSOLETE plain-text first line from
+  // the body — the callout above already shows that info from frontmatter.
   const body = document.getElementById('entry-body');
   if (body) {
     const first = body.querySelector('p:first-child');

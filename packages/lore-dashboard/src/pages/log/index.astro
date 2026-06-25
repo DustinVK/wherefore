@@ -2,51 +2,63 @@
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 
-const allEntries = await getCollection('log');
+const allEntries  = await getCollection('log');
+const allQuestions = await getCollection('questions');
 
 const sorted = allEntries.sort((a, b) => b.data.date.localeCompare(a.data.date));
 
-const allAreas = [...new Set(allEntries.flatMap(e => e.data.areas))].sort();
+const allAreas  = [...new Set(allEntries.flatMap(e => e.data.areas))].sort();
 const allTopics = [...new Set(allEntries.flatMap(e => e.data.topics))].sort();
 
-const activeCount = allEntries.filter(e => e.data.status === 'active').length;
+const activeCount  = allEntries.filter(e => e.data.status === 'active').length;
 const retiredCount = allEntries.filter(e => e.data.status !== 'active').length;
+const openQCount   = allQuestions.filter(q => q.data.status === 'open').length;
+
+const parts = [
+  `${activeCount} decisions`,
+  retiredCount > 0 ? `${retiredCount} retired` : null,
+  `${openQCount} open questions`,
+].filter(Boolean);
 ---
 <Base pageTitle="Log">
-  <h1>Log <span class="entry-count">{activeCount}</span></h1>
+  <p class="summary-line">{parts.join(' · ')}</p>
 
   <div class="filter-row" id="filters">
-    <select id="area-filter" aria-label="Filter by area">
-      <option value="">All areas</option>
+    <select id="area-filter" class="filter-select" aria-label="Filter by area">
+      <option value="">area: all</option>
       {allAreas.map(a => <option value={a}>{a}</option>)}
     </select>
-    <select id="topic-filter" aria-label="Filter by topic">
-      <option value="">All topics</option>
+    <select id="topic-filter" class="filter-select" aria-label="Filter by topic">
+      <option value="">topic: all</option>
       {allTopics.map(t => <option value={t}>{t}</option>)}
     </select>
     <input
       type="text"
       id="search-filter"
-      placeholder="Search titles..."
+      class="filter-search"
+      placeholder="search decisions…"
       aria-label="Search titles"
-      style="flex: 1; min-width: 120px;"
     />
     {retiredCount > 0 && (
-      <label>
-        <input type="checkbox" id="retired-toggle" />
-        Show superseded
-      </label>
+      <>
+        <input type="checkbox" id="retired-toggle" class="toggle-cb" />
+        <label for="retired-toggle" class="filter-toggle">
+          <span class="toggle-track"></span>
+          show retired
+        </label>
+      </>
     )}
   </div>
 
-  <p class="no-results" id="no-results" style="display:none;">No matching entries.</p>
+  <p class="no-results-msg" id="no-results">No matching decisions.</p>
 
   <ul class="entry-list" id="entry-list">
     {sorted.map(e => {
-      const retired = e.data.status !== 'active';
+      const sup = e.data.status === 'superseded';
+      const obs = e.data.status === 'obsolete';
       return (
         <li
-          class:list={['entry-card', retired && 'entry-card--retired']}
+          class:list={['row', sup && 'row-sup', obs && 'row-obs']}
           data-areas={e.data.areas.join(',')}
           data-topics={e.data.topics.join(',')}
           data-status={e.data.status}
@@ -54,14 +66,19 @@ const retiredCount = allEntries.filter(e => e.data.status !== 'active').length;
         >
           <a class="entry-title" href={`/log/${e.id}`}>{e.data.title}</a>
           <div class="entry-meta">
-            <span class="entry-date">{e.data.date}</span>
-            {retired && (
-              <span class:list={['status-badge', `status-badge--${e.data.status}`]}>
-                {e.data.status}
+            <span class="dt">{e.data.date}</span>
+            {e.data.areas.map(a => <span class="tag tag-area">{a}</span>)}
+            {e.data.topics.map(t => <span class="tag tag-topic">{t}</span>)}
+            {sup && (
+              <span class="badge-sup">
+                superseded &rarr;{' '}
+                {e.data.supersededBy
+                  ? <a href={`/log/${e.data.supersededBy}`}>{e.data.supersededBy}</a>
+                  : '?'
+                }
               </span>
             )}
-            {e.data.areas.map(a => <span class="chip chip--area">{a}</span>)}
-            {e.data.topics.map(t => <span class="chip">{t}</span>)}
+            {obs && <span class="badge-obs">obsolete</span>}
           </div>
         </li>
       );
@@ -69,64 +86,49 @@ const retiredCount = allEntries.filter(e => e.data.status !== 'active').length;
   </ul>
 </Base>
 
-<style>
-  h1 { display: flex; align-items: baseline; gap: 0.5rem; }
-  .entry-count {
-    font-size: 0.875rem;
-    font-weight: 400;
-    color: var(--text-muted);
-  }
-</style>
-
 <script is:inline>
   (function () {
-    const areaSelect = document.getElementById('area-filter');
-    const topicSelect = document.getElementById('topic-filter');
-    const searchInput = document.getElementById('search-filter');
+    const areaFilter    = document.getElementById('area-filter');
+    const topicFilter   = document.getElementById('topic-filter');
+    const searchFilter  = document.getElementById('search-filter');
     const retiredToggle = document.getElementById('retired-toggle');
-    const list = document.getElementById('entry-list');
-    const noResults = document.getElementById('no-results');
-
+    const list          = document.getElementById('entry-list');
+    const noResults     = document.getElementById('no-results');
     if (!list) return;
 
-    const cards = Array.from(list.querySelectorAll('.entry-card'));
+    const cards = Array.from(list.querySelectorAll('.row'));
 
     function applyFilter() {
-      const area = areaSelect ? areaSelect.value : '';
-      const topic = topicSelect ? topicSelect.value : '';
-      const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
-      const showRetired = retiredToggle ? retiredToggle.checked : false;
+      const area         = areaFilter   ? areaFilter.value   : '';
+      const topic        = topicFilter  ? topicFilter.value  : '';
+      const search       = searchFilter ? searchFilter.value.toLowerCase().trim() : '';
+      const showRetired  = retiredToggle ? retiredToggle.checked : false;
 
       let visible = 0;
       for (const card of cards) {
-        const cardAreas = card.dataset.areas ? card.dataset.areas.split(',') : [];
+        const cardAreas  = card.dataset.areas  ? card.dataset.areas.split(',')  : [];
         const cardTopics = card.dataset.topics ? card.dataset.topics.split(',') : [];
-        const cardStatus = card.dataset.status || 'active';
-        const cardTitle = card.dataset.title || '';
-        const retired = cardStatus !== 'active';
+        const retired    = card.dataset.status !== 'active';
+        const title      = card.dataset.title || '';
 
-        const matchArea = !area || cardAreas.includes(area);
-        const matchTopic = !topic || cardTopics.includes(topic);
-        const matchSearch = !search || cardTitle.includes(search);
-        const matchRetired = showRetired || !retired;
+        const ok = (!area   || cardAreas.includes(area))
+                && (!topic  || cardTopics.includes(topic))
+                && (!search || title.includes(search))
+                && (showRetired || !retired);
 
-        const show = matchArea && matchTopic && matchSearch && matchRetired;
-        card.hidden = !show;
-        if (show) visible++;
+        card.hidden = !ok;
+        if (ok) visible++;
       }
 
       if (noResults) noResults.style.display = visible === 0 ? 'block' : 'none';
     }
 
-    // Pre-set from URLSearchParams
+    // Pre-set from URLSearchParams (links from Tags page)
     const params = new URLSearchParams(location.search);
-    const areaParam = params.get('area');
-    const topicParam = params.get('topic');
-    if (areaParam && areaSelect) areaSelect.value = areaParam;
-    if (topicParam && topicSelect) topicSelect.value = topicParam;
+    if (params.get('area')  && areaFilter)  areaFilter.value  = params.get('area');
+    if (params.get('topic') && topicFilter) topicFilter.value = params.get('topic');
 
-    // Wire listeners
-    [areaSelect, topicSelect, searchInput, retiredToggle].forEach(el => {
+    [areaFilter, topicFilter, searchFilter, retiredToggle].forEach(el => {
       if (el) el.addEventListener('input', applyFilter);
     });
 

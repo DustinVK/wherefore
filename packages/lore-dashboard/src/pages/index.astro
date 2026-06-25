@@ -2,82 +2,70 @@
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 
-const allEntries = await getCollection('log');
+const allEntries  = await getCollection('log');
 const allQuestions = await getCollection('questions');
 
-const recentEntries = allEntries
-  .filter(e => e.data.status === 'active')
+const activeEntries = allEntries.filter(e => e.data.status === 'active');
+const openQuestions = allQuestions
+  .filter(q => q.data.status === 'open')
+  .sort((a, b) => b.data.asked_date.localeCompare(a.data.asked_date));
+
+const recentEntries = activeEntries
   .sort((a, b) => b.data.date.localeCompare(a.data.date))
   .slice(0, 5);
 
-const openQuestions = allQuestions
-  .filter(q => q.data.status === 'open')
-  .sort((a, b) => {
-    const numA = parseInt(a.data.id.replace(/\D/g, ''), 10) || 0;
-    const numB = parseInt(b.data.id.replace(/\D/g, ''), 10) || 0;
-    return numB - numA;
-  });
-
-const activeCount = allEntries.filter(e => e.data.status === 'active').length;
-const openCount = openQuestions.length;
+const retiredCount = allEntries.filter(e => e.data.status !== 'active').length;
+const parts = [
+  `${activeEntries.length} decisions`,
+  retiredCount > 0 ? `${retiredCount} retired` : null,
+  `${openQuestions.length} open questions`,
+].filter(Boolean);
 ---
 <Base>
-  <div class="home-stats">
-    <span>{activeCount} active {activeCount === 1 ? 'entry' : 'entries'}</span>
-    <span class="stat-sep">·</span>
-    <span>{openCount} open {openCount === 1 ? 'question' : 'questions'}</span>
+  <p class="summary-line">{parts.join(' · ')}</p>
+
+  <div class="page-section">
+    <div class="page-section-head">
+      Recent decisions
+      <a href="/log">All decisions &rarr;</a>
+    </div>
+    {recentEntries.length === 0 ? (
+      <p class="empty">No entries yet.</p>
+    ) : (
+      <ul class="entry-list">
+        {recentEntries.map(e => (
+          <li class="row">
+            <a class="entry-title" href={`/log/${e.id}`}>{e.data.title}</a>
+            <div class="entry-meta">
+              <span class="dt">{e.data.date}</span>
+              {e.data.areas.map(a => <span class="tag tag-area">{a}</span>)}
+              {e.data.topics.map(t => <span class="tag tag-topic">{t}</span>)}
+            </div>
+          </li>
+        ))}
+      </ul>
+    )}
   </div>
 
-  <div class="section-head">
-    Recent entries
-    <a href="/log">All entries &rarr;</a>
+  <div class="page-section">
+    <div class="page-section-head">
+      Open questions
+      <a href="/questions">All questions &rarr;</a>
+    </div>
+    {openQuestions.length === 0 ? (
+      <p class="empty">No open questions.</p>
+    ) : (
+      <ul class="question-list">
+        {openQuestions.map(q => (
+          <li class="row">
+            <div class="q-id-date">{q.data.id} · {q.data.asked_date}</div>
+            <span class="q-text">{q.data.question}</span>
+            <div class="entry-meta">
+              {q.data.areas.map(a => <span class="tag tag-area">{a}</span>)}
+            </div>
+          </li>
+        ))}
+      </ul>
+    )}
   </div>
-
-  {recentEntries.length === 0 ? (
-    <p class="empty">No entries yet.</p>
-  ) : (
-    <ul class="entry-list">
-      {recentEntries.map(e => (
-        <li class="entry-card">
-          <a class="entry-title" href={`/log/${e.id}`}>{e.data.title}</a>
-          <div class="entry-meta">
-            <span class="entry-date">{e.data.date}</span>
-            {e.data.areas.map(a => <span class="chip chip--area">{a}</span>)}
-            {e.data.topics.map(t => <span class="chip">{t}</span>)}
-          </div>
-        </li>
-      ))}
-    </ul>
-  )}
-
-  <div class="section-head" style="margin-top: 2.5rem;">
-    Open questions
-    <a href="/questions">All questions &rarr;</a>
-  </div>
-
-  {openQuestions.length === 0 ? (
-    <p class="empty">No open questions.</p>
-  ) : (
-    <ul class="question-list">
-      {openQuestions.map(q => (
-        <li class="question-card">
-          <div class="question-id">{q.data.id}</div>
-          <div class="question-text">{q.data.question}</div>
-          <div class="question-meta">
-            <span class="entry-date">{q.data.asked_date}</span>
-            {q.data.areas.map(a => <span class="chip chip--area">{a}</span>)}
-          </div>
-        </li>
-      ))}
-    </ul>
-  )}
 </Base>
-
-<style>
-  .home-stats {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-    margin-bottom: 0.25rem;
-  }
-  .stat-sep { margin: 0 0.25rem; }
-</style>

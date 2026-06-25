@@ -5,28 +5,27 @@ import { parseTopics } from '../lib/topics';
 
 const SRC = process.env.LORE_SRC ?? '';
 
-const allEntries = await getCollection('log');
+const allEntries    = await getCollection('log');
 const activeEntries = allEntries.filter(e => e.data.status === 'active');
 
 const vocab = parseTopics(SRC);
 
-// Count active entries per area and topic
-const areaCounts = new Map<string, number>();
+// Count active entries per tag
+const areaCounts  = new Map<string, number>();
 const topicCounts = new Map<string, number>();
 
 for (const e of activeEntries) {
-  for (const a of e.data.areas) areaCounts.set(a, (areaCounts.get(a) ?? 0) + 1);
+  for (const a of e.data.areas)  areaCounts.set(a,  (areaCounts.get(a)  ?? 0) + 1);
   for (const t of e.data.topics) topicCounts.set(t, (topicCounts.get(t) ?? 0) + 1);
 }
 
-// Merge vocab with counts; include tags from entries not in vocab
-const vocabAreaSet = new Set(vocab.areas);
+// Add tags that appear in entries but not in vocab
+const vocabAreaSet  = new Set(vocab.areas);
 const vocabTopicSet = new Set(vocab.topics);
-
-for (const a of areaCounts.keys()) if (!vocabAreaSet.has(a)) vocab.areas.push(a);
+for (const a of areaCounts.keys())  if (!vocabAreaSet.has(a))  vocab.areas.push(a);
 for (const t of topicCounts.keys()) if (!vocabTopicSet.has(t)) vocab.topics.push(t);
 
-// Sort: count desc, then alpha
+// Sort: count desc, then alphabetical
 function sortTags(tags: string[], counts: Map<string, number>) {
   return [...tags].sort((a, b) => {
     const diff = (counts.get(b) ?? 0) - (counts.get(a) ?? 0);
@@ -34,55 +33,55 @@ function sortTags(tags: string[], counts: Map<string, number>) {
   });
 }
 
-const sortedAreas = sortTags(vocab.areas, areaCounts);
+const sortedAreas  = sortTags(vocab.areas,  areaCounts);
 const sortedTopics = sortTags(vocab.topics, topicCounts);
+
+const totalActive = activeEntries.length;
 ---
 <Base pageTitle="Tags">
-  <h1>Tags</h1>
+  <p class="summary-line">{totalActive} active {totalActive === 1 ? 'entry' : 'entries'} · counts exclude retired</p>
 
-  {sortedAreas.length === 0 && sortedTopics.length === 0 && (
+  {(sortedAreas.length === 0 && sortedTopics.length === 0) ? (
     <p class="empty">No tags yet. Add areas and topics to <code>lore/topics.md</code>.</p>
-  )}
-
-  {sortedAreas.length > 0 && (
-    <section class="tag-section">
-      <div class="section-head">Areas</div>
-      <div class="tag-grid">
-        {sortedAreas.map(area => {
-          const count = areaCounts.get(area) ?? 0;
-          return (
-            <a
-              href={`/log?area=${encodeURIComponent(area)}`}
-              class:list={['tag-item', 'tag-item--link', count === 0 && 'tag-item--zero']}
-              aria-label={`${area} — ${count} ${count === 1 ? 'entry' : 'entries'}`}
-            >
-              <span>{area}</span>
-              <span class="tag-count">{count}</span>
-            </a>
-          );
-        })}
+  ) : (
+    <div class="tags-grid">
+      <div class="tags-col tags-col-areas">
+        <h2>Areas</h2>
+        {sortedAreas.length === 0
+          ? <p class="empty" style="margin-top:0">none</p>
+          : sortedAreas.map(area => {
+              const count = areaCounts.get(area) ?? 0;
+              return (
+                <a
+                  href={`/log?area=${encodeURIComponent(area)}`}
+                  class:list={['tagline', count === 0 && 'zero']}
+                >
+                  <span class="tag-nm">{area}</span>
+                  <span class="tag-ct">{count}</span>
+                </a>
+              );
+            })
+        }
       </div>
-    </section>
-  )}
 
-  {sortedTopics.length > 0 && (
-    <section class="tag-section">
-      <div class="section-head">Topics</div>
-      <div class="tag-grid">
-        {sortedTopics.map(topic => {
-          const count = topicCounts.get(topic) ?? 0;
-          return (
-            <a
-              href={`/log?topic=${encodeURIComponent(topic)}`}
-              class:list={['tag-item', 'tag-item--link', count === 0 && 'tag-item--zero']}
-              aria-label={`${topic} — ${count} ${count === 1 ? 'entry' : 'entries'}`}
-            >
-              <span>{topic}</span>
-              <span class="tag-count">{count}</span>
-            </a>
-          );
-        })}
+      <div class="tags-col tags-col-topics">
+        <h2>Topics</h2>
+        {sortedTopics.length === 0
+          ? <p class="empty" style="margin-top:0">none</p>
+          : sortedTopics.map(topic => {
+              const count = topicCounts.get(topic) ?? 0;
+              return (
+                <a
+                  href={`/log?topic=${encodeURIComponent(topic)}`}
+                  class:list={['tagline', count === 0 && 'zero']}
+                >
+                  <span class="tag-nm">{topic}</span>
+                  <span class="tag-ct">{count}</span>
+                </a>
+              );
+            })
+        }
       </div>
-    </section>
+    </div>
   )}
 </Base>

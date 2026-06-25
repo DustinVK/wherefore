@@ -5,15 +5,15 @@ interface Props {
   pageTitle?: string;
 }
 
-const siteTitle = process.env.LORE_TITLE ?? 'Lore Dashboard';
+const siteTitle = process.env.LORE_TITLE ?? 'lore';
 const { pageTitle } = Astro.props;
 const docTitle = pageTitle ? `${pageTitle} — ${siteTitle}` : siteTitle;
 const path = Astro.url.pathname;
 
 const nav = [
-  { href: '/log', label: 'Log' },
+  { href: '/log',       label: 'Log' },
   { href: '/questions', label: 'Questions' },
-  { href: '/tags', label: 'Tags' },
+  { href: '/tags',      label: 'Tags' },
 ];
 ---
 <!doctype html>
@@ -22,10 +22,15 @@ const nav = [
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{docTitle}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 </head>
 <body>
   <header class="site-header">
-    <a href="/" class="site-title">{siteTitle}</a>
+    <a href="/" class="wordmark">
+      <span class="prompt">&gt;</span>&nbsp;{siteTitle}<span class="cursor"></span>
+    </a>
     <nav>
       <ul class="nav-links">
         {nav.map(({ href, label }) => (
