@@ -22,8 +22,8 @@ const log = defineCollection({
     stories: z.array(z.string()).default([]),
     status: z.enum(['active', 'current', 'superseded', 'obsolete']).default('active'),
     supersedes: z.string().nullable().default(null),
-    'superseded-by': z.string().nullable().default(null),
-    'superseded-date': yamlDateNullable,
+    superseded_by: z.string().nullable().default(null),
+    superseded_date: yamlDateNullable,
   }).transform(d => ({
     date: d.date,
     title: d.title,
@@ -32,8 +32,8 @@ const log = defineCollection({
     stories: d.stories,
     status: (d.status === 'current' ? 'active' : d.status) as 'active' | 'superseded' | 'obsolete',
     supersedes: d.supersedes || null,
-    supersededBy: d['superseded-by'] || null,
-    supersededDate: d['superseded-date'] || null,
+    supersededBy: d.superseded_by || null,
+    supersededDate: d.superseded_date || null,
   })),
 });
 

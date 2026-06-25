@@ -19,7 +19,7 @@ function frontmatterKeys(content) {
 
 test('log fixtures -- required frontmatter keys', () => {
   const required = ['date', 'title', 'areas', 'topics', 'stories', 'status',
-    'supersedes', 'superseded-by', 'superseded-date'];
+    'supersedes', 'superseded_by', 'superseded_date'];
   const files = readdirSync(resolve(FIXTURE, 'log')).filter(f => f.endsWith('.md'));
 
   assert.ok(files.length >= 4, `Expected >= 4 log entries, got ${files.length}`);
@@ -45,11 +45,11 @@ test('log fixtures -- status values are valid', () => {
   }
 });
 
-test('log fixtures -- superseded entry has superseded-by and superseded-date', () => {
+test('log fixtures -- superseded entry has superseded_by and superseded_date', () => {
   const file = '2026-01-02-superseded-example.md';
   const content = readFileSync(resolve(FIXTURE, 'log', file), 'utf-8');
-  assert.match(content, /superseded-by:\s*\S+/, `${file}: superseded-by must be non-blank`);
-  assert.match(content, /superseded-date:\s*\d{4}-\d{2}-\d{2}/, `${file}: superseded-date must be a date`);
+  assert.match(content, /superseded_by:\s*\S+/, `${file}: superseded_by must be non-blank`);
+  assert.match(content, /superseded_date:\s*\d{4}-\d{2}-\d{2}/, `${file}: superseded_date must be a date`);
 });
 
 test('question fixtures -- required frontmatter keys', () => {

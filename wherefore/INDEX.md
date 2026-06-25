@@ -13,3 +13,10 @@ One line per entry below. Maintained by the capture skill.
 - 2026-06-24 | 2026-06-24-package-separate-repo | Dashboard package in its own repo | areas: repo-structure | topics: publishing | stories: none | superseded -> 2026-06-24-package-in-repo
 - 2026-06-24 | 2026-06-24-package-in-repo | Dashboard package at packages/wherefore-dashboard in the wherefore repo | areas: repo-structure | topics: publishing, ci | stories: none | active
 - 2026-06-25 | 2026-06-25-rename-to-wherefore | Rename from lore to wherefore | areas: branding | topics: naming, positioning | stories: none | active
+- 2026-06-25 | 2026-06-25-visual-identity | Logo: three-dot mark in teal, Space Grotesk wordmark | areas: branding | topics: visual-identity | stories: none | active
+- 2026-06-25 | 2026-06-25-npm-asset-scope | npm tarball ships only site-referenced assets | areas: dashboard, repo-structure | topics: publishing, distribution | stories: none | active
+- 2026-06-25 | 2026-06-25-underscore-frontmatter-keys | Standardize frontmatter keys to underscore style | areas: plugin, dashboard | topics: data-model | stories: none | active
+- 2026-06-25 | 2026-06-25-agents-md-cross-tool | AGENTS.md as cross-tool wherefore spec | areas: plugin, repo-structure | topics: docs, skill-structure, cross-tool | stories: none | active
+- 2026-06-25 | 2026-06-25-no-file-url-serving | No file:// support; serve the build over HTTP | areas: dashboard | topics: distribution, build | stories: none | active
+- 2026-06-25 | 2026-06-25-dashboard-dev-fixes | Fix tsconfig and Vite fs.allow in dev mode | areas: dashboard | topics: build | stories: none | active
+

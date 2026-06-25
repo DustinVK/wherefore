@@ -6,8 +6,8 @@ topics: [auth]
 stories: []
 status: obsolete
 supersedes:
-superseded-by:
-superseded-date: 2026-01-15
+superseded_by:
+superseded_date: 2026-01-15
 ---
 OBSOLETE 2026-01-15. Kept for history, not current.
 

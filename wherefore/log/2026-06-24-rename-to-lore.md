@@ -6,8 +6,8 @@ topics: [naming]
 stories: []
 status: superseded
 supersedes:
-superseded-by: 2026-06-25-rename-to-wherefore
-superseded-date: 2026-06-25
+superseded_by: 2026-06-25-rename-to-wherefore
+superseded_date: 2026-06-25
 ---
 
 SUPERSEDED 2026-06-25 -> see 2026-06-25-rename-to-wherefore. Kept for history, not current.

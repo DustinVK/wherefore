@@ -35,14 +35,14 @@ skill nor a human skimming raw files is left guessing.
    Superseded:
    ```yaml
    status: superseded
-   superseded-by: <new-slug>
-   superseded-date: YYYY-MM-DD
+   superseded_by: <new-slug>
+   superseded_date: YYYY-MM-DD
    ```
 
    Obsolete:
    ```yaml
    status: obsolete
-   superseded-date: YYYY-MM-DD
+   superseded_date: YYYY-MM-DD
    ```
 
 4. **Add a one-line banner** as the first body line of the target entry -- after
@@ -75,8 +75,8 @@ skill nor a human skimming raw files is left guessing.
 User: "Supersede the RLS tenant isolation entry -- it was replaced by the
 schema-per-tenant decision we logged last week."
 Action: locate `2026-06-23-rls-tenant-isolation` in INDEX. Edit its frontmatter
-(`status: superseded`, `superseded-by: 2026-07-01-schema-per-tenant`,
-`superseded-date: 2026-07-01`), add the banner. Update its INDEX line to
+(`status: superseded`, `superseded_by: 2026-07-01-schema-per-tenant`,
+`superseded_date: 2026-07-01`), add the banner. Update its INDEX line to
 `superseded -> 2026-07-01-schema-per-tenant`. Add `supersedes:
 2026-06-23-rls-tenant-isolation` to the replacement entry's frontmatter if
 missing. Report all files touched.
@@ -85,12 +85,12 @@ missing. Report all files touched.
 User: "Mark 2026-03-10-graphql-caching superseded -- we decided on REST caching
 headers but haven't logged that discussion yet."
 Action: edit the entry and INDEX as above but use a descriptive placeholder for
-`superseded-by` (e.g. `rest-caching-headers-tbd`). Note in the report-back:
+`superseded_by` (e.g. `rest-caching-headers-tbd`). Note in the report-back:
 "The replacement discussion hasn't been logged yet -- run the capture skill to
-log it, then update the superseded-by field to the real slug."
+log it, then update the superseded_by field to the real slug."
 
 **Example 3: mark obsolete**
 User: "Mark 2026-01-15-graphql-caching obsolete -- we dropped GraphQL entirely."
-Action: edit the entry (`status: obsolete`, `superseded-date: YYYY-MM-DD`), add
-the obsolete banner. Update the INDEX line to `obsolete`. No `superseded-by`
+Action: edit the entry (`status: obsolete`, `superseded_date: YYYY-MM-DD`), add
+the obsolete banner. Update the INDEX line to `obsolete`. No `superseded_by`
 field. Report what was changed.

@@ -6,8 +6,8 @@ topics: [positioning, docs]
 stories: []
 status: active
 supersedes:
-superseded-by:
-superseded-date:
+superseded_by:
+superseded_date:
 ---
 
 ## Summary

@@ -6,8 +6,8 @@ topics: [publishing]
 stories: []
 status: superseded
 supersedes:
-superseded-by: 2026-06-24-package-in-repo
-superseded-date: 2026-06-24
+superseded_by: 2026-06-24-package-in-repo
+superseded_date: 2026-06-24
 ---
 
 SUPERSEDED 2026-06-24 -> see 2026-06-24-package-in-repo. Kept for history, not current.

@@ -55,8 +55,8 @@ topics: [price-calculation, tax]  # cross-cutting concerns (HOW; from topics.md)
 stories: [PROJ-1234]              # related tickets / user stories, or []
 status: active                    # active | superseded | obsolete  (absence or "current" = active)
 supersedes:                       # slug of the entry this replaces, or blank
-superseded-by:                    # slug of replacement; filled in when this is superseded
-superseded-date:                  # date superseded (YYYY-MM-DD), or blank
+superseded_by:                    # slug of replacement; filled in when this is superseded
+superseded_date:                  # date superseded (YYYY-MM-DD), or blank
 ---
 
 ## Summary
@@ -141,7 +141,7 @@ long, compress harder; do not transcribe.
    **On confirmation that the new discussion replaces an old entry:**
    - Write the new entry with `supersedes: <old-slug>` in its frontmatter.
    - Edit the old entry's frontmatter: `status: superseded`,
-     `superseded-by: <new-slug>`, `superseded-date: YYYY-MM-DD`.
+     `superseded_by: <new-slug>`, `superseded_date: YYYY-MM-DD`.
    - Add a one-line banner as the first body line of the old entry (after the
      closing `---` of the frontmatter, before `## Summary`):
      ```
@@ -231,7 +231,7 @@ Action: before writing, scan INDEX for active entries sharing the `multi-tenancy
 or `postgres` topics. Surface the RLS entry as a candidate and ask the user to
 confirm the reversal. On confirmation: write the new entry with
 `supersedes: 2026-06-23-rls-tenant-isolation`. Edit the old entry's frontmatter
-(`status: superseded`, `superseded-by: <new-slug>`, `superseded-date: YYYY-MM-DD`)
+(`status: superseded`, `superseded_by: <new-slug>`, `superseded_date: YYYY-MM-DD`)
 and add the banner line at the top of its body. Update the old INDEX line to
 `superseded -> <new-slug>`. Report all files touched.
 To mark an existing entry superseded or obsolete without capturing a new

@@ -6,8 +6,8 @@ topics: [publishing, ci]
 stories: []
 status: active
 supersedes: 2026-06-24-package-separate-repo
-superseded-by:
-superseded-date:
+superseded_by:
+superseded_date:
 ---
 
 ## Summary

@@ -6,8 +6,8 @@ topics: [naming, positioning]
 stories: []
 status: active
 supersedes: 2026-06-24-rename-to-lore
-superseded-by:
-superseded-date:
+superseded_by:
+superseded_date:
 ---
 
 ## Summary

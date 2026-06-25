@@ -8,31 +8,41 @@
 
 The static dashboard for [wherefore](https://github.com/DustinVK/wherefore), the why behind your code.
 
-Wherefore captures the reasoning behind your engineering decisions, what you chose, why, and what you ruled out, as plain markdown in your repo. This package reads that `wherefore/` directory and builds a browsable static site from it. No Astro source lives in your repo; no cloud, no database.
+Wherefore captures the reasoning behind your engineering decisions, what you chose, why, and what you ruled out, as plain markdown in your repo. This package reads that `wherefore/` directory and builds a browsable static site from it. No Astro source lives in your repo; no cloud, no lock-in.
 
 [![npm](https://img.shields.io/npm/v/@dustinvk/wherefore-dashboard)](https://www.npmjs.com/package/@dustinvk/wherefore-dashboard)
 [![license](https://img.shields.io/npm/l/@dustinvk/wherefore-dashboard)](https://github.com/DustinVK/wherefore/blob/main/LICENSE)
 
 ## Quick start
 
-No install needed:
+From any directory that contains a `wherefore/` folder, no install and no flags:
 
 ```bash
-# local preview
-npx @dustinvk/wherefore-dashboard dev --src ./wherefore
+# live dashboard with hot reload
+npx @dustinvk/wherefore-dashboard dev
 
-# build a static site
-npx @dustinvk/wherefore-dashboard build --src ./wherefore --out ./dist
+# build a static site to ./dist
+npx @dustinvk/wherefore-dashboard build
 ```
 
-Options:
+`dev` and `build` default to `./wherefore` for the source and `./dist` for build output. Override either when your layout differs:
 
 ```bash
 npx @dustinvk/wherefore-dashboard build \
-  --src ./wherefore \
-  --out ./dist \
+  --src ./path/to/wherefore \
+  --out ./site \
   --title "My Project Wherefore"
 ```
+
+## Viewing a build locally
+
+A built site uses absolute asset paths, so it must be served over HTTP. Opening `dist/index.html` directly in the browser (a `file://` URL) loads the page but not the styles. To preview a build, serve the folder:
+
+```bash
+npx serve ./dist
+```
+
+For routine local viewing, just use `dev`, it runs a live server with hot reload. The `build` output is meant to be deployed to a host (see below), where it serves correctly from the site root.
 
 ## Pinning for reproducible builds
 

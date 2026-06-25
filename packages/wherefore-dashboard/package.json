@@ -4,9 +4,19 @@
   "description": "Build tool that reads a wherefore/ directory and emits a static dashboard.",
   "author": "Dustin VanKrimpen",
   "license": "MIT",
-  "keywords": ["wherefore", "decision-log", "adr", "architecture", "static-site", "astro", "dashboard"],
+  "keywords": [
+    "wherefore",
+    "decision-log",
+    "adr",
+    "architecture",
+    "static-site",
+    "astro",
+    "dashboard"
+  ],
   "homepage": "https://github.com/DustinVK/wherefore/tree/main/packages/wherefore-dashboard#readme",
-  "bugs": { "url": "https://github.com/DustinVK/wherefore/issues" },
+  "bugs": {
+    "url": "https://github.com/DustinVK/wherefore/issues"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/DustinVK/wherefore.git",
@@ -35,5 +45,8 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.1"
   }
 }

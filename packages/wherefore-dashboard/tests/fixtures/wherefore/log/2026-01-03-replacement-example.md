@@ -6,8 +6,8 @@ topics: [api-design]
 stories: [PROJ-102]
 status: active
 supersedes: 2026-01-02-superseded-example
-superseded-by:
-superseded-date:
+superseded_by:
+superseded_date:
 ---
 
 ## Summary

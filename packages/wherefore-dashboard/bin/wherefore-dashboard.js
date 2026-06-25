@@ -75,6 +75,8 @@ if (command === 'build') {
     if (existsSync(out)) await rm(out, { recursive: true });
     await cp(workDir, out, { recursive: true });
     console.log(`Built to ${out}`);
+    console.log(`To preview locally:  npx serve ${out}`);
+    console.log(`(Opening index.html directly will not load styles. For live preview, use the dev command.)`);
   } finally {
     if (existsSync(workDir)) await rm(workDir, { recursive: true }).catch(() => {});
   }

@@ -6,8 +6,8 @@ topics: [api-design]
 stories: []
 status: superseded
 supersedes:
-superseded-by: 2026-01-03-replacement-example
-superseded-date: 2026-01-03
+superseded_by: 2026-01-03-replacement-example
+superseded_date: 2026-01-03
 ---
 SUPERSEDED 2026-01-03 -> see 2026-01-03-replacement-example. Kept for history, not current.
 
