@@ -33,6 +33,8 @@ if (command === 'build') {
 
   const workDir = resolve(tmpdir(), `lore-dashboard-${Date.now()}`);
 
+  process.chdir(PACKAGE_ROOT);
+
   try {
     await build({ root: PACKAGE_ROOT, outDir: workDir });
     if (existsSync(out)) await rm(out, { recursive: true });
