@@ -25,6 +25,7 @@ All entries live under a repo-relative `wherefore/` directory:
 
 ```
 wherefore/
+├── README.md                     # what this directory is + link to the plugin
 ├── INDEX.md                      # one line per entry; maintained by THIS skill
 ├── QUESTIONS.md                  # one-line-per-question index
 ├── topics.md                     # controlled topic vocabulary (canonical tags)
@@ -35,8 +36,18 @@ wherefore/
 ```
 
 If `wherefore/` does not exist yet, create it along with `wherefore/log/`,
-`wherefore/questions/`, an empty `QUESTIONS.md`, a starter `topics.md`, and an
-`INDEX.md`. Write this one-line header at the very top of the new `INDEX.md`:
+`wherefore/questions/`, an empty `QUESTIONS.md`, a starter `topics.md`, an
+`INDEX.md`, and a `README.md` with exactly this content:
+
+```markdown
+# wherefore
+
+A decision log in plain markdown. Each file captures what was decided, why, and what was ruled out.
+
+Maintained by the [wherefore](https://github.com/DustinVK/wherefore) Claude Code skill.
+```
+
+Write this one-line header at the very top of the new `INDEX.md`:
 ```
 # Wherefore: decision history for this repo
 ```
