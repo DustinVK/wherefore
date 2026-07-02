@@ -5,11 +5,12 @@
 </picture>
 
 # wherefore: the why behind your code
-
 A Claude Code skill that generates a decision log as plain markdown files in your
 repo. Paste in a discussion and it writes what was decided, why, and what was ruled
-out. No cloud, no database, just files committed next to your code.  
+out. No cloud, no database, just files committed next to your code.
 
+Want to browse it? A companion dashboard renders the whole log as a searchable site,
+spun up with one npx line. No install, no config.
 ## Quick start
 
 **1. Add the plugin to Claude Code:**
