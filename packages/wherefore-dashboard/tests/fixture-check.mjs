@@ -85,7 +85,7 @@ test('fixture counts match expected', () => {
   const qFiles = readdirSync(resolve(FIXTURE, 'questions')).filter(f => f.endsWith('.md'));
 
   assert.equal(logFiles.length, 4, `Expected 4 log entries`);
-  assert.equal(qFiles.length, 2, `Expected 2 questions`);
+  assert.equal(qFiles.length, 3, `Expected 3 questions`);
 
   const statuses = logFiles.map(f => {
     const content = readFileSync(resolve(FIXTURE, 'log', f), 'utf-8');
