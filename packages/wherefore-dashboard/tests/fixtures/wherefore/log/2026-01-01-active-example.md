@@ -1,7 +1,7 @@
 ---
 date: 2026-01-01
 title: Active example decision
-areas: [checkout]
+areas: [checkout, catalog]
 topics: [api-design]
 stories: [PROJ-101]
 status: active

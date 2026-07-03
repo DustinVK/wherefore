@@ -12,6 +12,12 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Exercise both supported Node lines from engines ("^22.18.0 || >=24.0.0"):
+        # 22.18 is the floor (native TS type stripping unflagged; jsdom's ^22.13),
+        # 24 is the current major.
+        node-version: ["22.18", "24"]
     defaults:
       run:
         working-directory: packages/wherefore-dashboard
@@ -22,7 +28,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: ${{ matrix.node-version }}
           cache: "npm"
           cache-dependency-path: packages/wherefore-dashboard/package-lock.json
 

@@ -1,32 +1,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, rmSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
 import { tmpdir } from 'node:os';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const BIN = resolve(__dirname, '..', 'bin', 'wherefore-dashboard.js');
-const FIXTURES_WHEREFORE = resolve(__dirname, 'fixtures', 'wherefore');
-
-function spawn(args, opts = {}) {
-  return spawnSync(process.execPath, [BIN, ...args], {
-    encoding: 'utf-8',
-    timeout: opts.timeout ?? 10000,
-    cwd: opts.cwd,
-  });
-}
-
-function uniqueTemp(label) {
-  return resolve(tmpdir(), `wherefore-dashboard-test-${label}-${Date.now()}`);
-}
+import { runBin, uniqueTemp, FIXTURES } from './helpers.mjs';
 
 test('--help exits 0 and does not create dist/', () => {
   const tempCwd = uniqueTemp('help-cwd');
   mkdirSync(tempCwd, { recursive: true });
   try {
-    const result = spawn(['--help'], { cwd: tempCwd });
+    const result = runBin(['--help'], { cwd: tempCwd });
     assert.equal(result.status, 0);
     assert.ok(!existsSync(resolve(tempCwd, 'dist')), 'help must not create dist/');
   } finally {
@@ -38,7 +21,7 @@ test('build --help exits 0 and does not create dist/', () => {
   const tempCwd = uniqueTemp('build-help-cwd');
   mkdirSync(tempCwd, { recursive: true });
   try {
-    const result = spawn(['build', '--help'], { cwd: tempCwd });
+    const result = runBin(['build', '--help'], { cwd: tempCwd });
     assert.equal(result.status, 0);
     assert.ok(!existsSync(resolve(tempCwd, 'dist')), 'build --help must not create dist/');
   } finally {
@@ -47,21 +30,21 @@ test('build --help exits 0 and does not create dist/', () => {
 });
 
 test('build with missing src exits 1', () => {
-  const nonexistent = resolve(tmpdir(), `wherefore-no-such-${Date.now()}`);
-  const result = spawn(['build', '--src', nonexistent]);
+  const nonexistent = resolve(tmpdir(), `wherefore-no-such-${process.pid}-${Date.now()}`);
+  const result = runBin(['build', '--src', nonexistent]);
   assert.equal(result.status, 1);
 });
 
 test('dev with missing src exits 1', () => {
-  const nonexistent = resolve(tmpdir(), `wherefore-no-such-${Date.now()}`);
-  const result = spawn(['dev', '--src', nonexistent], { timeout: 5000 });
+  const nonexistent = resolve(tmpdir(), `wherefore-no-such-${process.pid}-${Date.now()}`);
+  const result = runBin(['dev', '--src', nonexistent], { timeout: 5000 });
   assert.equal(result.status, 1);
 });
 
 test('build happy path produces expected output files', { timeout: 60000 }, () => {
   const out = uniqueTemp('build-out');
   try {
-    const result = spawn(['build', '--src', FIXTURES_WHEREFORE, '--out', out], { timeout: 60000 });
+    const result = runBin(['build', '--src', FIXTURES, '--out', out], { timeout: 60000 });
     assert.equal(result.status, 0);
 
     assert.ok(existsSync(resolve(out, 'index.html')), 'missing index.html');

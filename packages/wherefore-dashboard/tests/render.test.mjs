@@ -3,17 +3,12 @@
 
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
 import { readFileSync, existsSync, rmSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
 import { JSDOM } from 'jsdom';
+import { runBin, FIXTURES, uniqueTemp } from './helpers.mjs';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const BIN = resolve(__dirname, '..', 'bin', 'wherefore-dashboard.js');
-const FIXTURES = resolve(__dirname, 'fixtures', 'wherefore');
-const OUT = resolve(tmpdir(), `wherefore-render-test-${Date.now()}`);
+const OUT = uniqueTemp('render-out');
 
 let build; // spawn result of the fixture build
 
@@ -23,10 +18,10 @@ const text = (el) => (el ? el.textContent.replace(/\s+/g, ' ').trim() : null);
 const visible = (rows) => rows.filter((r) => !r.hidden);
 
 before(() => {
-  build = spawnSync(process.execPath, [BIN, 'build', '--src', FIXTURES, '--out', OUT], {
-    encoding: 'utf-8',
-    timeout: 90000,
-  });
+  build = runBin(['build', '--src', FIXTURES, '--out', OUT], { timeout: 90000 });
+  // Fail fast with the build error itself; otherwise every downstream test throws an
+  // opaque ENOENT when it reads a file the failed build never produced.
+  assert.equal(build.status, 0, `fixture build failed:\n${build.stderr || build.stdout}`);
 }, { timeout: 100000 });
 
 after(() => {
@@ -35,8 +30,8 @@ after(() => {
 
 // ---- build regression ------------------------------------------------------
 
-test('build succeeds with no duplicate-id warnings', () => {
-  assert.equal(build.status, 0, build.stderr);
+test('build emits no duplicate-id warnings', () => {
+  // (build.status === 0 is asserted in the before() hook.)
   const out = `${build.stdout ?? ''}${build.stderr ?? ''}`;
   assert.ok(!/Duplicate id/.test(out), 'build must not emit Duplicate id warnings');
 });
@@ -143,6 +138,7 @@ test('tags page: counts exclude retired, zero-count tags shown', () => {
     return { count: Number(text(line.querySelector('.tag-ct'))), zero: line.classList.contains('zero') };
   };
   assert.deepEqual(countIn('.tags-col-areas', 'checkout'), { count: 2, zero: false });
+  assert.deepEqual(countIn('.tags-col-areas', 'catalog'), { count: 1, zero: false });
   assert.deepEqual(countIn('.tags-col-areas', 'billing'), { count: 0, zero: true });
   assert.deepEqual(countIn('.tags-col-topics', 'api-design'), { count: 2, zero: false });
   assert.deepEqual(countIn('.tags-col-topics', 'auth'), { count: 0, zero: true });
@@ -196,17 +192,19 @@ test('log filter: retired toggle and area filter', () => {
   assert.equal(shown[0].dataset.areas, 'billing');
 });
 
-test('log filter: ?area= URL param pre-selects the area filter', () => {
+test('log filter: ?area= URL param pre-selects and actually filters', () => {
   const { window } = new JSDOM(html('log/index.html'), {
     runScripts: 'dangerously',
-    url: 'http://localhost/log?area=checkout',
+    url: 'http://localhost/log?area=catalog',
   });
   const d = window.document;
-  assert.equal(d.getElementById('area-filter').value, 'checkout');
+  assert.equal(d.getElementById('area-filter').value, 'catalog');
 
   const shown = visible([...d.querySelectorAll('.row')]);
-  // active checkout entries only (02 is checkout but retired -> hidden; 04 is billing)
-  assert.equal(shown.length, 2);
-  assert.ok(shown.every((r) => r.dataset.areas.split(',').includes('checkout')));
-  assert.ok(shown.every((r) => r.dataset.status === 'active'));
+  // Only the active 'catalog' entry (2026-01-01) matches; the checkout-only active
+  // entry (2026-01-03) is excluded -- so this fails if the pre-set filter is ignored
+  // (an unfiltered default view would show both active entries).
+  assert.equal(shown.length, 1);
+  assert.ok(shown[0].dataset.areas.split(',').includes('catalog'));
+  assert.equal(shown[0].dataset.status, 'active');
 });

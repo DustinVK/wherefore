@@ -5,11 +5,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const FIXTURE = resolve(__dirname, 'fixtures/wherefore');
+import { resolve } from 'node:path';
+import { FIXTURES as FIXTURE } from './helpers.mjs';
 
 function frontmatterKeys(content) {
   const match = content.match(/^---\n([\s\S]*?)\n---/);

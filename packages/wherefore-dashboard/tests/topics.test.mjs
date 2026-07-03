@@ -2,20 +2,17 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
 import { parseTopics } from '../src/lib/topics.ts';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const FIXTURE = resolve(__dirname, 'fixtures', 'wherefore');
+import { FIXTURES } from './helpers.mjs';
 
 test('parseTopics reads Areas and Topics sections from topics.md', () => {
-  const vocab = parseTopics(FIXTURE);
+  const vocab = parseTopics(FIXTURES);
   assert.deepEqual(vocab.areas, ['checkout', 'billing', 'catalog']);
   assert.deepEqual(vocab.topics, ['auth', 'api-design', 'performance', 'data-model']);
 });
 
 test('parseTopics returns empty vocab when topics.md is missing', () => {
-  const vocab = parseTopics(resolve(__dirname, 'no-such-dir'));
+  const vocab = parseTopics(resolve(FIXTURES, '..', 'no-such-dir'));
   assert.deepEqual(vocab, { areas: [], topics: [] });
 });
