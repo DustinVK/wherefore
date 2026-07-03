@@ -1,6 +1,6 @@
 ---
 date: 2026-06-24
-title: Decision supersession model and status states
+title: "Decision supersession model and status states"
 areas: [plugin]
 topics: [supersession, data-model]
 stories: []

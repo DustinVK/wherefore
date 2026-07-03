@@ -1,6 +1,6 @@
 ---
 date: 2026-06-24
-title: Dashboard package at packages/wherefore-dashboard in the wherefore repo
+title: "Dashboard package at packages/wherefore-dashboard in the wherefore repo"
 areas: [repo-structure]
 topics: [publishing, ci]
 stories: []

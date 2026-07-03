@@ -1,6 +1,6 @@
 ---
 date: 2026-06-24
-title: Dashboard reads source files and renders all states
+title: "Dashboard reads source files and renders all states"
 areas: [dashboard]
 topics: [data-model, ui]
 stories: []
@@ -22,7 +22,7 @@ correcting an earlier draft schema that predated supersession and would not buil
 - The dashboard reads the per-entry and per-question source files directly and
   ignores INDEX.md and QUESTIONS.md, so index drift cannot corrupt the view.
 - Obsolete is handled on every surface: home, log list, detail banner, tag counts.
-  One "Show retired" toggle covers superseded and obsolete.
+- One "Show retired" toggle covers superseded and obsolete.
 - Questions render their full body in an expandable card.
 - Tags show the full vocabulary with zero-count tags dimmed, counts active-only.
 - Dangling pointers (placeholder superseded-by, blank resolution_slug) never produce

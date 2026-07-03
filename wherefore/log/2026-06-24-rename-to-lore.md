@@ -1,6 +1,6 @@
 ---
 date: 2026-06-24
-title: Rebrand to lore with plain-verb skill names
+title: "Rebrand to lore with plain-verb skill names"
 areas: [branding]
 topics: [naming]
 stories: []

@@ -1,6 +1,6 @@
 ---
 date: 2026-06-24
-title: Ship the dashboard as a build tool, not a fork
+title: "Ship the dashboard as a build tool, not a fork"
 areas: [dashboard]
 topics: [distribution, build]
 stories: []

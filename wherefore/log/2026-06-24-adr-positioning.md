@@ -1,6 +1,6 @@
 ---
 date: 2026-06-24
-title: Position against ADRs in one line, not a section
+title: "Position against ADRs in one line, not a section"
 areas: [branding]
 topics: [positioning, docs]
 stories: []
@@ -21,7 +21,8 @@ keep the ADR keyword for discoverability only.
   automatically instead of dying in a wiki.
 - Acknowledge ADRs in one sentence, not a dedicated "Why not ADRs?" section.
 - Put "adr" and "architecture-decision-records" in the GitHub topics for search
-  traffic. Never put ADR in the product name.
+  traffic.
+- Never put ADR in the product name.
 
 ## Why
 A whole ADR section reads defensive and anchors the product to the exact thing it
