@@ -47,20 +47,20 @@ plugins/wherefore/
                                       # wherefore/topics.md vocabulary (ask-before-write)
   skills/capture/
     SKILL.md                          # captures a discussion into wherefore/ as one or
-                                      # more tagged Markdown entries + updates INDEX.md
-                                      # and QUESTIONS.md (open question registry)
+                                      # more tagged Markdown entries; registers any open
+                                      # questions as questions/Q-NNN.md files
     topics.seed.md                    # starter vocabulary copied on first use if no
                                       # topics.md exists yet
   skills/ask/
-    SKILL.md                          # answers "why did we build X?" by reading INDEX.md
-                                      # first, then opening shortlisted entry files;
+    SKILL.md                          # answers "why did we build X?" by shortlisting from
+                                      # entry frontmatter, then opening matching files;
                                       # also surfaces open questions in the same area
   skills/resolve/
-    SKILL.md                          # closes an open question in QUESTIONS.md with an
-                                      # answer, rationale, and optional entry back-link
+    SKILL.md                          # closes an open question by editing its
+                                      # questions/Q-NNN.md file (answer, rationale, back-link)
   skills/supersede/
     SKILL.md                          # marks an entry superseded (with pointer to
-                                      # replacement) or obsolete; updates INDEX.md
+                                      # replacement) or obsolete via its frontmatter
 ```
 
 The `wherefore/` directory itself is **not** in this repo -- it lives in each consuming project's repo, created by the skills on first use.
@@ -70,6 +70,7 @@ The `wherefore/` directory itself is **not** in this repo -- it lives in each co
 - **SKILL.md** front matter: `name`, `description` (used for skill-trigger matching), and optionally `allowed-tools`.
 - **Command `.md`** front matter: `description`, `argument-hint`, `allowed-tools`.
 - All skills use a two-facet tag system: **areas** (feature slices: WHAT) and **topics** (cross-cutting concerns: HOW), drawn from the consuming project's `wherefore/topics.md`. Keep this separation consistent if extending the skills.
-- `capture` is write-heavy (creates/edits files); a single discussion may produce multiple entry files when it covers independently-queryable threads. `ask` is read-only. `resolve` edits only `QUESTIONS.md` (and optionally the source entry). `supersede` edits an existing entry file and its INDEX line. `seed` is read-first, write-only-after-confirmation -- preserve this ask-before-write pattern for any new commands.
-- Entry filenames: `YYYY-MM-DD-short-slug.md`. INDEX.md format: `- YYYY-MM-DD | slug | title | areas: ... | topics: ... | stories: ... | status`.
-- QUESTIONS.md format: one `## Q-NNN -- <text>` block per question, with `Status`, `Areas`, `Asked`, and `Resolution` fields. IDs are sequential and never reused.
+- There is no hand-maintained index. INDEX.md and QUESTIONS.md are gone: entry and question frontmatter is the single source of truth, and `ask` derives its shortlist by reading only the leading frontmatter block of each file. Do not reintroduce a generated index in any skill or command; if extending the skills, derive on read instead.
+- `capture` is write-heavy (creates/edits files); a single discussion may produce multiple entry files when it covers independently-queryable threads. `ask` is read-only. `resolve` edits only the `questions/Q-NNN.md` file (and optionally the source entry). `supersede` edits an existing entry file's frontmatter and adds a banner. `seed` is read-first, write-only-after-confirmation -- preserve this ask-before-write pattern for any new commands.
+- Entry filenames: `YYYY-MM-DD-short-slug.md`; the entry frontmatter (`date`, `title`, `areas`, `topics`, `stories`, `status`, `supersedes`, `superseded_by`, `superseded_date`) is what readers shortlist on.
+- Question files: `questions/Q-NNN.md`, one per question, with `id`, `question`, `status`, `areas`, `asked_date`, `asked_slug`, `resolution`, `resolution_slug` frontmatter. IDs are sequential and never reused; the next ID is (highest existing `id:`) + 1.

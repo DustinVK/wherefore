@@ -57,9 +57,10 @@ There are three ways to work with it:
 Feed the plugin a discussion (raw notes, a transcript, an AI-generated summary, a
 Slack thread) and it outputs compact entries capturing what was decided, why, and
 what was rejected. Unresolved questions each get their own file in
-`wherefore/questions/` with a one-line entry in `QUESTIONS.md` so nothing falls
-through the cracks. An `INDEX.md` keeps everything scannable, so an agent can answer
-"why did we build it this way?" directly from the repo without touching a wiki.
+`wherefore/questions/` so nothing falls through the cracks. There is no index to
+keep in sync: the frontmatter in each entry is the single source of truth, and an
+agent shortlists straight from it to answer "why did we build it this way?" directly
+from the repo without touching a wiki.
 
 If you've used ADRs, this is the same instinct, with the capture, querying, question
 lifecycle, and supersession bookkeeping handled for you so it actually gets
@@ -71,19 +72,18 @@ maintained.
   more compact, tagged entries: what was decided, why, and what was rejected.
   Long discussions covering independent topics are split into one file per
   independently-queryable thread. Genuine unresolved questions each get an
-  individual file in `wherefore/questions/` (Q-001.md, Q-002.md ...) and a one-line
-  entry in `QUESTIONS.md`.
+  individual file in `wherefore/questions/` (Q-001.md, Q-002.md ...).
 - **`ask`** -- answers "why did we build it this way?" / "what did we decide
   about X?" by searching the log, or tells you plainly when there's nothing.
-  After answering, it surfaces any still-open questions in the same area.
+  It shortlists from entry frontmatter, then reads only the matching files. After
+  answering, it surfaces any still-open questions in the same area.
 - **`resolve`** -- closes out an open question by updating its
-  `wherefore/questions/Q-NNN.md` file and the corresponding index line in
-  `QUESTIONS.md`, recording the answer, the rationale, and a link to the
-  discussion that settled it.
+  `wherefore/questions/Q-NNN.md` file, recording the answer, the rationale, and a
+  link to the discussion that settled it.
 - **`supersede`** -- marks a past decision superseded (with a pointer to its
   replacement) or obsolete, without requiring a new discussion to be captured.
-  Updates the entry file, adds a visible banner, and updates the INDEX line so
-  both the `ask` skill and human readers see it is retired.
+  Updates the entry file and adds a visible banner so both the `ask` skill and
+  human readers see it is retired.
 - **`/wherefore:seed`** -- inspects the codebase and proposes a starter set of areas
   and topics for `wherefore/topics.md`, with a short justification for each tag.
   Confirm or edit its proposal and it writes (or merges into) the file.
@@ -166,11 +166,11 @@ First-time setup in a project (optional but recommended):
 Both steps are optional. The log still works without them; the trigger just
 becomes manual and the vocabulary grows organically as you go.
 
-On first use in a project, `capture` scaffolds a `wherefore/` folder (`INDEX.md`,
-`QUESTIONS.md`, a starter `topics.md`, a `log/` subdirectory, and a `questions/`
-subdirectory) in that repo. The plugin ships the tooling; the log itself is
-per-project data. Restart Claude Code once after installing so the new skills are
-picked up.
+On first use in a project, `capture` scaffolds a `wherefore/` folder (a starter
+`topics.md`, a `README.md`, a `log/` subdirectory, and a `questions/` subdirectory)
+in that repo. There is no generated index to keep in sync. The plugin ships the
+tooling; the log itself is per-project data. Restart Claude Code once after
+installing so the new skills are picked up.
 
 ## How a session flows
 
@@ -179,15 +179,15 @@ distills it, tags it, and writes one file per independently-queryable decision
 thread under `wherefore/log/`. A long, meandering discussion can produce several files
 if its threads are unrelated enough to be searched separately. If the discussion
 leaves genuine unresolved questions, each gets its own file in `wherefore/questions/`
-(e.g. `Q-001.md`) with a one-line entry in `QUESTIONS.md`.
+(e.g. `Q-001.md`).
 
 Later, ask "why did we implement the price calculator the way we did?" and `ask`
 searches the log, summarizes the relevant entries (with dates and source files),
 and appends any still-open questions in the same area.
 
 When a question gets answered, say "mark Q-007 resolved -- we decided X because
-Y" (or name the log entry if you just logged it). `resolve` updates
-`QUESTIONS.md` and annotates the source entry so the audit trail is complete.
+Y" (or name the log entry if you just logged it). `resolve` updates the question
+file and annotates the source entry so the audit trail is complete.
 
 **Question lifecycle:** `capture` creates questions, `ask` surfaces them,
 `resolve` closes them.
@@ -234,14 +234,15 @@ Each consuming project's log lives in its own repo, not here:
 ```
 <your-project>/
 └── wherefore/
-    ├── INDEX.md          # one line per entry; maintained by capture
-    ├── QUESTIONS.md      # one-line-per-question index
     ├── topics.md         # controlled tag vocabulary (areas + topics)
     ├── questions/
     │   └── Q-NNN.md      # one file per question
     └── log/
         └── YYYY-MM-DD-short-slug.md   # one file per independently-queryable thread
 ```
+
+No `INDEX.md` or `QUESTIONS.md`: entry and question frontmatter is the single
+source of truth, and the skills derive what they need at read time.
 
 ## Publishing the plugin yourself
 

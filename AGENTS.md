@@ -9,24 +9,29 @@ location; if `wherefore/` exists, use it.
 
 ```
 wherefore/
-  INDEX.md          one line per decision entry (the retrieval index)
-  QUESTIONS.md      one line per open/resolved question
   topics.md         controlled tag vocabulary: Areas and Topics
   log/YYYY-MM-DD-short-slug.md    one decision per file
   questions/Q-NNN.md              one question per file
 ```
 
+There is no index file. The frontmatter in each `log/` and `questions/` file is the
+single source of truth; readers derive what they need at read time. Do not create or
+maintain an `INDEX.md` or `QUESTIONS.md`; a repo carrying them from an older version
+is no longer using them.
+
 ## Reading (answering "why did we...", "what did we decide about...")
 
-1. Read `INDEX.md` first and shortlist entries by area, topic, story, or title.
-   Open only the shortlisted files (1-5), not the whole log.
+1. Read only the leading frontmatter block of every `log/*.md` file (it is short),
+   and shortlist by area, topic, story, or title. Then open only the shortlisted
+   files (1-5), not the whole log. The frontmatter also carries each entry's
+   `status` and `superseded_by`, so filtering and chain-following need no index.
 2. Treat status `active`, `current`, or absent as current. For a `superseded`
    entry, follow its `superseded_by` slug to the replacement (repeat until you
    reach an active entry). Exclude `obsolete` entries unless asked about history.
 3. Answer from active entries, lead with the current decision, cite the source by
    date + title + filename. If nothing matches, say so plainly. Never fabricate.
-4. After answering, scan `QUESTIONS.md` for `open` questions whose areas overlap
-   and surface them briefly.
+4. After answering, read the `questions/Q-*.md` frontmatter and surface briefly any
+   `open` questions whose areas overlap.
 
 ## Writing a decision (capture)
 
@@ -64,12 +69,8 @@ The rationale, constraints, tradeoffs. Highest-value section.
 ```
 
 Tag from `topics.md` only. Reuse existing tags; add a new one only when nothing
-fits, and append it to the right section of `topics.md`. Then append one line to
-`INDEX.md`:
-
-```
-- YYYY-MM-DD | slug | title | areas: a1 | topics: t1, t2 | stories: PROJ-1 | active
-```
+fits, and append it to the right section of `topics.md`. That is the whole write:
+there is no index to append to.
 
 ## Superseding a decision (never silently; confirm with the user first)
 
@@ -85,17 +86,17 @@ When a new decision replaces an old one, or the user asks to retire an entry:
    SUPERSEDED YYYY-MM-DD -> see <new-slug>. Kept for history, not current.
    ```
 
-4. Change the old entry's `INDEX.md` status column to `superseded -> <new-slug>`.
+The frontmatter change is the whole update; there is no index status column to edit.
 
 For an abandoned decision with no replacement: `status: obsolete`, a
-`superseded_date`, a banner `OBSOLETE YYYY-MM-DD. Kept for history, not current.`,
-and `obsolete` in the INDEX column (no `superseded_by`).
+`superseded_date`, and a banner `OBSOLETE YYYY-MM-DD. Kept for history, not current.`
+(no `superseded_by`).
 
 ## Questions
 
-When a decision leaves something unresolved, register it. Next Q-ID = highest in
-`QUESTIONS.md` + 1. Create `wherefore/questions/Q-NNN.md` with this EXACT
-frontmatter:
+When a decision leaves something unresolved, register it. Next Q-ID = (highest `id:`
+across the existing `wherefore/questions/Q-*.md` files) + 1; IDs are sequential and
+never reused. Create `wherefore/questions/Q-NNN.md` with this EXACT frontmatter:
 
 ```markdown
 ---
@@ -110,15 +111,11 @@ resolution_slug:
 ---
 ```
 
-Append one line to `QUESTIONS.md`:
+Creating the file is the whole registration; there is no question index to append to.
 
-```
-- Q-NNN | open | YYYY-MM-DD | asked_slug | question text | areas: a1, a2
-```
-
-To resolve: set the Q-file `status: resolved`, fill `resolution` (one sentence)
-and `resolution_slug` (source slug, or blank if standalone), and change `open` to
-`resolved` on its `QUESTIONS.md` line.
+To resolve: set the Q-file `status: resolved`, fill `resolution` (one sentence) and
+`resolution_slug` (source slug, or blank if standalone). The frontmatter is the only
+place the status lives.
 
 ## Conventions
 
