@@ -128,8 +128,8 @@ if (command === 'build') {
   });
 
 } else if (command === 'init') {
-  const isGlobal = flags.global === 'true' || rawArgs.includes('--global');
-  const isForce = flags.force === 'true' || rawArgs.includes('--force') || rawArgs.includes('-f');
+  const isGlobal = rawArgs.includes('--global');
+  const isForce = rawArgs.includes('--force') || rawArgs.includes('-f');
   const targetRoot = process.cwd();
   // Track whether any step actually errored (not just "already exists / skipped")
   // so init can do as much setup as possible and still exit non-zero at the end.
@@ -252,59 +252,33 @@ if (command === 'build') {
     hadError = true;
   }
 
-  // 7. Install Antigravity Skills
-  if (isGlobal) {
-    const globalSkillsDir = resolve(homedir(), '.gemini', 'antigravity-cli', 'skills');
-    console.log(`Installing skills globally for Antigravity in ${globalSkillsDir}...`);
-    try {
-      await mkdir(globalSkillsDir, { recursive: true });
-      const skillsToInstall = ['capture', 'ask', 'resolve', 'supersede'];
-      for (const skill of skillsToInstall) {
-        const dest = resolve(globalSkillsDir, skill);
-        const exists = existsSync(dest);
-        if (!exists || isForce) {
-          // Copy into a temp dir and swap in, so a failed copy never leaves the
-          // skill deleted with no replacement.
-          const tmpDest = `${dest}.tmp`;
-          await rm(tmpDest, { recursive: true, force: true });
-          await cp(resolve(PACKAGE_ROOT, 'skills', skill), tmpDest, { recursive: true });
-          if (exists) await rm(dest, { recursive: true, force: true });
-          await rename(tmpDest, dest);
-          console.log(`  Installed global skill '${skill}'${isForce && exists ? ' (overwritten)' : ''}.`);
-        } else {
-          console.log(`  Skipped global skill '${skill}' (already exists). Pass --force to overwrite.`);
-        }
+  // 7. Install Antigravity Skills (globally or in the project, same logic either way)
+  const scope = isGlobal ? 'global' : 'local';
+  const skillsDir = isGlobal
+    ? resolve(homedir(), '.gemini', 'antigravity-cli', 'skills')
+    : resolve(targetRoot, '.agents', 'skills');
+  console.log(`Installing skills ${isGlobal ? 'globally' : 'locally'} for Antigravity in ${skillsDir}...`);
+  try {
+    await mkdir(skillsDir, { recursive: true });
+    for (const skill of ['capture', 'ask', 'resolve', 'supersede']) {
+      const dest = resolve(skillsDir, skill);
+      const exists = existsSync(dest);
+      if (!exists || isForce) {
+        // Copy into a temp dir and swap in, so a failed copy never leaves the
+        // skill deleted with no replacement.
+        const tmpDest = `${dest}.tmp`;
+        await rm(tmpDest, { recursive: true, force: true });
+        await cp(resolve(PACKAGE_ROOT, 'skills', skill), tmpDest, { recursive: true });
+        if (exists) await rm(dest, { recursive: true, force: true });
+        await rename(tmpDest, dest);
+        console.log(`  Installed ${scope} skill '${skill}'${isForce && exists ? ' (overwritten)' : ''}.`);
+      } else {
+        console.log(`  Skipped ${scope} skill '${skill}' (already exists). Pass --force to overwrite.`);
       }
-    } catch (err) {
-      console.error(`  Error installing global skills: ${err.message}`);
-      hadError = true;
     }
-  } else {
-    const localSkillsDir = resolve(targetRoot, '.agents', 'skills');
-    console.log(`Installing skills locally for Antigravity in ${localSkillsDir}...`);
-    try {
-      await mkdir(localSkillsDir, { recursive: true });
-      const skillsToInstall = ['capture', 'ask', 'resolve', 'supersede'];
-      for (const skill of skillsToInstall) {
-        const dest = resolve(localSkillsDir, skill);
-        const exists = existsSync(dest);
-        if (!exists || isForce) {
-          // Copy into a temp dir and swap in, so a failed copy never leaves the
-          // skill deleted with no replacement.
-          const tmpDest = `${dest}.tmp`;
-          await rm(tmpDest, { recursive: true, force: true });
-          await cp(resolve(PACKAGE_ROOT, 'skills', skill), tmpDest, { recursive: true });
-          if (exists) await rm(dest, { recursive: true, force: true });
-          await rename(tmpDest, dest);
-          console.log(`  Installed local skill '${skill}'${isForce && exists ? ' (overwritten)' : ''}.`);
-        } else {
-          console.log(`  Skipped local skill '${skill}' (already exists). Pass --force to overwrite.`);
-        }
-      }
-    } catch (err) {
-      console.error(`  Error installing local skills: ${err.message}`);
-      hadError = true;
-    }
+  } catch (err) {
+    console.error(`  Error installing ${scope} skills: ${err.message}`);
+    hadError = true;
   }
 
   if (hadError) {
