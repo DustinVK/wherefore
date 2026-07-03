@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 import { build, dev } from 'astro';
-import { cp, rm } from 'node:fs/promises';
+import { cp, rm, readFile, writeFile, mkdir } from 'node:fs/promises';
 import { existsSync, statSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { tmpdir } from 'node:os';
+import { tmpdir, homedir } from 'node:os';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = resolve(__dirname, '..');
@@ -27,12 +27,13 @@ const USAGE = `wherefore-dashboard -- build or preview a static dashboard from a
 Usage:
   wherefore-dashboard build [--src <path>] [--out <path>] [--title <string>]
   wherefore-dashboard dev   [--src <path>] [--title <string>]
-  wherefore-dashboard init
+  wherefore-dashboard init  [--global]
 
 Options:
   --src <path>     Path to the wherefore/ directory to render. Default: ./wherefore
   --out <path>     Output directory for the built site. Default: ./dist
   --title <string> Override the dashboard title.
+  --global         Install Antigravity skills globally instead of in the project root.
   -h, --help       Show this help.`;
 
 function checkSrc(src) {
@@ -113,10 +114,146 @@ if (command === 'build') {
   });
 
 } else if (command === 'init') {
-  console.log('init: not yet implemented.');
-  console.log('Intended: scaffold package.json with @dustinvk/wherefore-dashboard as devDependency,');
-  console.log('a .gitignore entry for dist/, and an optional wherefore-dashboard.config.json.');
-  process.exit(1);
+  const isGlobal = flags.global === 'true' || rawArgs.includes('--global');
+  const targetRoot = process.cwd();
+  
+  // 1. Read dashboard version from package.json
+  let dashboardVersion = 'latest';
+  try {
+    const pkgJson = JSON.parse(await readFile(resolve(PACKAGE_ROOT, 'package.json'), 'utf8'));
+    dashboardVersion = `^${pkgJson.version}`;
+  } catch (_) {}
+
+  console.log('Initializing wherefore log structure...');
+
+  // 2. Create wherefore/ directories and seed topics.md if not exists
+  const whereforeDir = resolve(targetRoot, 'wherefore');
+  const logDir = resolve(whereforeDir, 'log');
+  const questionsDir = resolve(whereforeDir, 'questions');
+  const planDir = resolve(whereforeDir, 'plan');
+
+  await mkdir(logDir, { recursive: true });
+  await mkdir(questionsDir, { recursive: true });
+  await mkdir(planDir, { recursive: true });
+
+  const topicsPath = resolve(whereforeDir, 'topics.md');
+  if (!existsSync(topicsPath)) {
+    const seedTopicsPath = resolve(PACKAGE_ROOT, 'skills', 'capture', 'topics.seed.md');
+    try {
+      await cp(seedTopicsPath, topicsPath);
+      console.log('  Created wherefore/topics.md from seed template.');
+    } catch (err) {
+      console.warn(`  Warning: Could not seed topics.md: ${err.message}`);
+    }
+  } else {
+    console.log('  wherefore/topics.md already exists, skipping seed.');
+  }
+
+  // 3. Scaffold package.json
+  const targetPkgJsonPath = resolve(targetRoot, 'package.json');
+  if (existsSync(targetPkgJsonPath)) {
+    try {
+      const pkgContent = await readFile(targetPkgJsonPath, 'utf8');
+      const pkg = JSON.parse(pkgContent);
+      if (!pkg.devDependencies) pkg.devDependencies = {};
+      if (!pkg.dependencies) pkg.dependencies = {};
+      
+      const hasDep = pkg.devDependencies['@dustinvk/wherefore-dashboard'] || pkg.dependencies['@dustinvk/wherefore-dashboard'];
+      if (!hasDep) {
+        pkg.devDependencies['@dustinvk/wherefore-dashboard'] = dashboardVersion;
+        await writeFile(targetPkgJsonPath, JSON.stringify(pkg, null, 2), 'utf8');
+        console.log('  Added @dustinvk/wherefore-dashboard to devDependencies in package.json.');
+      } else {
+        console.log('  @dustinvk/wherefore-dashboard already in package.json.');
+      }
+    } catch (err) {
+      console.warn(`  Warning: Could not update package.json: ${err.message}`);
+    }
+  }
+
+  // 4. Update .gitignore
+  const gitignorePath = resolve(targetRoot, '.gitignore');
+  let gitignoreContent = '';
+  if (existsSync(gitignorePath)) {
+    gitignoreContent = await readFile(gitignorePath, 'utf8');
+  }
+  const linesToAppend = [];
+  if (!gitignoreContent.includes('dist/')) linesToAppend.push('dist/');
+  if (!gitignoreContent.includes('.test-dist/')) linesToAppend.push('.test-dist/');
+  
+  if (linesToAppend.length > 0) {
+    const divider = gitignoreContent.length === 0 || gitignoreContent.endsWith('\n') ? '' : '\n';
+    await writeFile(gitignorePath, gitignoreContent + divider + linesToAppend.join('\n') + '\n', 'utf8');
+    console.log('  Updated .gitignore to ignore dashboard build outputs.');
+  }
+
+  // 5. Install AGENTS.md
+  const agentsPath = resolve(targetRoot, 'AGENTS.md');
+  const templateAgentsPath = resolve(PACKAGE_ROOT, 'templates', 'AGENTS.md');
+  try {
+    await cp(templateAgentsPath, agentsPath);
+    console.log('  Created AGENTS.md in project root for non-Claude coding agents.');
+  } catch (err) {
+    console.warn(`  Warning: Could not create AGENTS.md: ${err.message}`);
+  }
+
+  // 6. Install CLAUDE.md setup snippet
+  const claudePath = resolve(targetRoot, 'CLAUDE.md');
+  const templateSnippetPath = resolve(PACKAGE_ROOT, 'templates', 'CLAUDE.snippet.md');
+  try {
+    const snippetContent = await readFile(templateSnippetPath, 'utf8');
+    let existingClaude = '';
+    if (existsSync(claudePath)) {
+      existingClaude = await readFile(claudePath, 'utf8');
+    }
+    
+    if (!existingClaude.includes('## Wherefore') && !existingClaude.includes('wherefore plugin')) {
+      const divider = existingClaude.length === 0 || existingClaude.endsWith('\n') ? '' : '\n';
+      await writeFile(claudePath, existingClaude + divider + snippetContent, 'utf8');
+      console.log('  Appended wherefore snippet to CLAUDE.md.');
+    } else {
+      console.log('  CLAUDE.md already configured for wherefore plugin, skipping.');
+    }
+  } catch (err) {
+    console.warn(`  Warning: Could not configure CLAUDE.md: ${err.message}`);
+  }
+
+  // 7. Install Antigravity Skills
+  if (isGlobal) {
+    const globalSkillsDir = resolve(homedir(), '.gemini', 'antigravity-cli', 'skills');
+    console.log(`Installing skills globally for Antigravity in ${globalSkillsDir}...`);
+    try {
+      await mkdir(globalSkillsDir, { recursive: true });
+      const skillsToInstall = ['capture', 'ask', 'resolve', 'supersede'];
+      for (const skill of skillsToInstall) {
+        const dest = resolve(globalSkillsDir, skill);
+        await rm(dest, { recursive: true, force: true });
+        await cp(resolve(PACKAGE_ROOT, 'skills', skill), dest, { recursive: true });
+      }
+      console.log('  Successfully installed skills globally.');
+    } catch (err) {
+      console.error(`  Error installing global skills: ${err.message}`);
+      process.exit(1);
+    }
+  } else {
+    const localSkillsDir = resolve(targetRoot, '.agents', 'skills');
+    console.log(`Installing skills locally for Antigravity in ${localSkillsDir}...`);
+    try {
+      await mkdir(localSkillsDir, { recursive: true });
+      const skillsToInstall = ['capture', 'ask', 'resolve', 'supersede'];
+      for (const skill of skillsToInstall) {
+        const dest = resolve(localSkillsDir, skill);
+        await rm(dest, { recursive: true, force: true });
+        await cp(resolve(PACKAGE_ROOT, 'skills', skill), dest, { recursive: true });
+      }
+      console.log('  Successfully installed skills locally under .agents/skills/.');
+    } catch (err) {
+      console.error(`  Error installing local skills: ${err.message}`);
+      process.exit(1);
+    }
+  }
+
+  console.log('\nInitialization complete! All set up.');
 
 } else {
   console.error(`Unknown command: ${command ?? '(none)'}`);

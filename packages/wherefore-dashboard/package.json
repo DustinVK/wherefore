@@ -33,7 +33,9 @@
     "bin",
     "src",
     "public",
-    "astro.config.mjs"
+    "astro.config.mjs",
+    "skills",
+    "templates"
   ],
   "scripts": {
     "dev": "node bin/wherefore-dashboard.js dev",
