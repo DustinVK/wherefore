@@ -1,6 +1,8 @@
 ---
-import { getCollection, render } from 'astro:content';
+import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import { parseEntry, renderInline } from '../../lib/entry-sections';
+import '../../styles/wherefore-1A.css';
 
 export async function getStaticPaths() {
   const entries = await getCollection('log');
@@ -8,13 +10,20 @@ export async function getStaticPaths() {
 }
 
 const { entry } = Astro.props;
-const { Content } = await render(entry);
 
 const allEntries = await getCollection('log');
 
 const { status, supersededBy, supersededDate, supersedes } = entry.data;
 const replacement = supersededBy ? allEntries.find(e => e.id === supersededBy) ?? null : null;
 const prev        = supersedes   ? allEntries.find(e => e.id === supersedes)   ?? null : null;
+
+const sections = parseEntry(entry.body ?? '');
+
+const statusClass =
+  status === 'superseded' ? 'is-superseded' :
+  status === 'obsolete'   ? 'is-obsolete'   : '';
+
+const pad = (n: number) => String(n).padStart(2, '0');
 ---
 <Base pageTitle={entry.data.title}>
   <a href="/log" class="back-link"><span class="arrow">&larr;</span> back to log</a>
@@ -37,18 +46,83 @@ const prev        = supersedes   ? allEntries.find(e => e.id === supersedes)   ?
     </div>
   )}
 
-  <h1 class="detail-title">{entry.data.title}</h1>
+  <article class="wf-entry">
+    <div class="wf-logo">
+      <span class="mark"><i></i><i></i><i></i><i></i></span>
+      <b>wherefore</b>
+    </div>
 
-  <div class="detail-meta">
-    <span class="dt">{entry.data.date}</span>
-    {entry.data.areas.map(a => <span class="tag tag-area">{a}</span>)}
-    {entry.data.topics.map(t => <span class="tag tag-topic">{t}</span>)}
-    {entry.data.stories.map(s => <span class="tag tag-topic">{s}</span>)}
-  </div>
+    <div class="wf-head">
+      <h1 class="wf-title">{entry.data.title}</h1>
+      <span class:list={['wf-status', statusClass]}>{status}</span>
+    </div>
 
-  <div class="entry-body" id="entry-body">
-    <Content />
-  </div>
+    <div class="wf-meta">
+      {entry.data.areas.map(a => <span class="wf-chip area">{a}</span>)}
+      {entry.data.topics.map(t => <span class="wf-chip topic">{t}</span>)}
+      {entry.data.stories.map(s => <span class="wf-chip story">[{s}]</span>)}
+      <span class="wf-date">{entry.data.date}</span>
+    </div>
+
+    {sections.summary.length > 0 && (
+      <div class="wf-summary">
+        {sections.summary.map(p => <p set:html={renderInline(p)} />)}
+      </div>
+    )}
+
+    {sections.decisions.length > 0 && (
+      <>
+        <div class="wf-label">Decisions / outcomes</div>
+        {sections.decisions.map((d, i) => (
+          <div class="wf-decision">
+            <span class="n">{pad(i + 1)}</span>
+            <div>
+              <p class="verdict" set:html={renderInline(d.verdict)} />
+              {d.detail && <p class="detail" set:html={renderInline(d.detail)} />}
+            </div>
+          </div>
+        ))}
+      </>
+    )}
+
+    {sections.why.length > 0 && (
+      <>
+        <div class="wf-label">Why</div>
+        {sections.why.map(p => <p class="wf-why" set:html={renderInline(p)} />)}
+      </>
+    )}
+
+    {sections.alternatives.length > 0 && (
+      <>
+        <div class="wf-label">Alternatives considered</div>
+        <div class="wf-alts">
+          {sections.alternatives.map(a => (
+            <div class="wf-alt">
+              <span class="tag">Rejected</span>
+              <div class="txt">
+                <b>{a.option}</b>
+                {a.reason && <> <span set:html={renderInline(a.reason)} /></>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </>
+    )}
+
+    {sections.questions.length > 0 && (
+      <>
+        <div class="wf-label warn">Open questions</div>
+        <div class="wf-qs">
+          {sections.questions.map(q => (
+            <div class="wf-q">
+              {q.id && <span class="id">{q.id}</span>}
+              <span class="txt" set:html={renderInline(q.text)} />
+            </div>
+          ))}
+        </div>
+      </>
+    )}
+  </article>
 
   {prev && (
     <p class="supersedes-note">
@@ -59,15 +133,3 @@ const prev        = supersedes   ? allEntries.find(e => e.id === supersedes)   ?
     <p class="supersedes-note">Supersedes: <code>{supersedes}</code></p>
   )}
 </Base>
-
-<script is:inline>
-  // Strip the skill-written SUPERSEDED/OBSOLETE plain-text first line from
-  // the body — the callout above already shows that info from frontmatter.
-  const body = document.getElementById('entry-body');
-  if (body) {
-    const first = body.querySelector('p:first-child');
-    if (first && /^(SUPERSEDED|OBSOLETE)\s/.test(first.textContent || '')) {
-      first.remove();
-    }
-  }
-</script>
