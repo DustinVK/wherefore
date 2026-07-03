@@ -119,6 +119,10 @@ from any directory containing a `wherefore/` folder. See the
 [package README](packages/wherefore-dashboard/README.md) for build options, local
 preview, and deploying to Cloudflare Pages.
 
+Running several projects at the same time? See
+[Running several projects at once](packages/wherefore-dashboard/README.md#running-several-projects-at-once)
+-- concurrent `dev` is fine; concurrent `build`s want per-project installs.
+
 ## Running the dashboard from source
 
 If you have this repo cloned and want to run the dashboard from the local source

@@ -9,6 +9,19 @@ import { tmpdir } from 'node:os';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = resolve(__dirname, '..');
 
+async function resetContentStore() {
+  // Astro persists its content-layer data store under the package root, not under --src:
+  //   dev   -> <root>/.astro/data-store.json
+  //   build -> <root>/node_modules/.astro/data-store.json  (cacheDir default)
+  // Question ids (Q-001, ...) are identical in every project, so a store left over from a
+  // different --src collides and Astro logs "Duplicate id". Clear it so each run is scoped to
+  // the current --src. The store is cheap to rebuild for a markdown viewer.
+  await Promise.all([
+    rm(resolve(PACKAGE_ROOT, '.astro', 'data-store.json'), { force: true }),
+    rm(resolve(PACKAGE_ROOT, 'node_modules', '.astro', 'data-store.json'), { force: true }),
+  ]);
+}
+
 const USAGE = `wherefore-dashboard -- build or preview a static dashboard from a wherefore/ directory
 
 Usage:
@@ -66,6 +79,8 @@ if (command === 'build') {
   process.env.WHEREFORE_SRC = src;
   if (flags.title) process.env.WHEREFORE_TITLE = flags.title;
 
+  await resetContentStore();
+
   const workDir = resolve(tmpdir(), `wherefore-dashboard-${Date.now()}`);
 
   process.chdir(PACKAGE_ROOT);
@@ -88,6 +103,8 @@ if (command === 'build') {
 
   process.env.WHEREFORE_SRC = src;
   if (flags.title) process.env.WHEREFORE_TITLE = flags.title;
+
+  await resetContentStore();
 
   const server = await dev({ root: PACKAGE_ROOT });
   process.on('SIGINT', async () => {

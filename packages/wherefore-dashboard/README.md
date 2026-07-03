@@ -71,6 +71,19 @@ npm install --save-dev @dustinvk/wherefore-dashboard
 
 Bumping the dashboard later is a one-line change in your `package.json`.
 
+## Running several projects at once
+
+The dashboard caches per install, not per project. That has one consequence worth knowing:
+
+- **Multiple `dev` servers at once is fine.** Browsing two or more projects side by side works --
+  each `dev` server renders its own project. You may see harmless `Duplicate id "Q-..."` warnings
+  in the logs; they do not affect what is served.
+- **Avoid running multiple `build`s at once against the same `npx` install.** Parallel builds of
+  different projects (e.g. a multi-repo CI job or script) share one on-disk cache and can
+  cross-contaminate each other's output. Either serialize the builds, or install the dashboard as a
+  per-project devDependency (see above) and build via an npm script so each project uses its own
+  isolated copy.
+
 ## Deploy to Cloudflare Pages
 
 - Build command: `npx @dustinvk/wherefore-dashboard build`

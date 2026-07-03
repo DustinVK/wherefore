@@ -1,6 +1,6 @@
 {
   "name": "@dustinvk/wherefore-dashboard",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Build tool that reads a wherefore/ directory and emits a static dashboard.",
   "author": "Dustin VanKrimpen",
   "license": "MIT",
