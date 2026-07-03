@@ -27,13 +27,14 @@ const USAGE = `wherefore-dashboard -- build or preview a static dashboard from a
 Usage:
   wherefore-dashboard build [--src <path>] [--out <path>] [--title <string>]
   wherefore-dashboard dev   [--src <path>] [--title <string>]
-  wherefore-dashboard init  [--global]
+  wherefore-dashboard init  [--global] [--force]
 
 Options:
   --src <path>     Path to the wherefore/ directory to render. Default: ./wherefore
   --out <path>     Output directory for the built site. Default: ./dist
   --title <string> Override the dashboard title.
   --global         Install Antigravity skills globally instead of in the project root.
+  --force, -f      Overwrite existing skills and configuration files.
   -h, --help       Show this help.`;
 
 function checkSrc(src) {
@@ -115,6 +116,7 @@ if (command === 'build') {
 
 } else if (command === 'init') {
   const isGlobal = flags.global === 'true' || rawArgs.includes('--global');
+  const isForce = flags.force === 'true' || rawArgs.includes('--force') || rawArgs.includes('-f');
   const targetRoot = process.cwd();
   
   // 1. Read dashboard version from package.json
@@ -190,11 +192,16 @@ if (command === 'build') {
   // 5. Install AGENTS.md
   const agentsPath = resolve(targetRoot, 'AGENTS.md');
   const templateAgentsPath = resolve(PACKAGE_ROOT, 'templates', 'AGENTS.md');
-  try {
-    await cp(templateAgentsPath, agentsPath);
-    console.log('  Created AGENTS.md in project root for non-Claude coding agents.');
-  } catch (err) {
-    console.warn(`  Warning: Could not create AGENTS.md: ${err.message}`);
+  const agentsExists = existsSync(agentsPath);
+  if (!agentsExists || isForce) {
+    try {
+      await cp(templateAgentsPath, agentsPath);
+      console.log(`  Created AGENTS.md in project root${isForce && agentsExists ? ' (overwritten)' : ''}.`);
+    } catch (err) {
+      console.warn(`  Warning: Could not create AGENTS.md: ${err.message}`);
+    }
+  } else {
+    console.log('  AGENTS.md already exists, skipping. Pass --force to overwrite.');
   }
 
   // 6. Install CLAUDE.md setup snippet
@@ -227,10 +234,15 @@ if (command === 'build') {
       const skillsToInstall = ['capture', 'ask', 'resolve', 'supersede'];
       for (const skill of skillsToInstall) {
         const dest = resolve(globalSkillsDir, skill);
-        await rm(dest, { recursive: true, force: true });
-        await cp(resolve(PACKAGE_ROOT, 'skills', skill), dest, { recursive: true });
+        const exists = existsSync(dest);
+        if (!exists || isForce) {
+          if (exists) await rm(dest, { recursive: true, force: true });
+          await cp(resolve(PACKAGE_ROOT, 'skills', skill), dest, { recursive: true });
+          console.log(`  Installed global skill '${skill}'${isForce && exists ? ' (overwritten)' : ''}.`);
+        } else {
+          console.log(`  Skipped global skill '${skill}' (already exists). Pass --force to overwrite.`);
+        }
       }
-      console.log('  Successfully installed skills globally.');
     } catch (err) {
       console.error(`  Error installing global skills: ${err.message}`);
       process.exit(1);
@@ -243,10 +255,15 @@ if (command === 'build') {
       const skillsToInstall = ['capture', 'ask', 'resolve', 'supersede'];
       for (const skill of skillsToInstall) {
         const dest = resolve(localSkillsDir, skill);
-        await rm(dest, { recursive: true, force: true });
-        await cp(resolve(PACKAGE_ROOT, 'skills', skill), dest, { recursive: true });
+        const exists = existsSync(dest);
+        if (!exists || isForce) {
+          if (exists) await rm(dest, { recursive: true, force: true });
+          await cp(resolve(PACKAGE_ROOT, 'skills', skill), dest, { recursive: true });
+          console.log(`  Installed local skill '${skill}'${isForce && exists ? ' (overwritten)' : ''}.`);
+        } else {
+          console.log(`  Skipped local skill '${skill}' (already exists). Pass --force to overwrite.`);
+        }
       }
-      console.log('  Successfully installed skills locally under .agents/skills/.');
     } catch (err) {
       console.error(`  Error installing local skills: ${err.message}`);
       process.exit(1);

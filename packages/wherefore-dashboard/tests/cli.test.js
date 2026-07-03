@@ -106,3 +106,31 @@ test('init command scaffolds expected directories and files', () => {
     rmSync(tempCwd, { recursive: true, force: true });
   }
 });
+
+test('init command skips existing files and overwrites with --force', () => {
+  const tempCwd = uniqueTemp('init-force-cwd');
+  mkdirSync(tempCwd, { recursive: true });
+  const dummyPkg = { name: "test-project", version: "1.0.0" };
+  writeFileSync(resolve(tempCwd, 'package.json'), JSON.stringify(dummyPkg, null, 2), 'utf8');
+
+  // Pre-seed an AGENTS.md and an existing skill with customized content
+  writeFileSync(resolve(tempCwd, 'AGENTS.md'), 'custom-agents-content', 'utf8');
+  mkdirSync(resolve(tempCwd, '.agents', 'skills', 'capture'), { recursive: true });
+  writeFileSync(resolve(tempCwd, '.agents', 'skills', 'capture', 'SKILL.md'), 'custom-capture-skill', 'utf8');
+
+  try {
+    // 1. Run without --force -> should skip overwriting
+    const result1 = spawn(['init'], { cwd: tempCwd });
+    assert.equal(result1.status, 0);
+    assert.equal(readFileSync(resolve(tempCwd, 'AGENTS.md'), 'utf8'), 'custom-agents-content');
+    assert.equal(readFileSync(resolve(tempCwd, '.agents', 'skills', 'capture', 'SKILL.md'), 'utf8'), 'custom-capture-skill');
+
+    // 2. Run with --force -> should overwrite
+    const result2 = spawn(['init', '--force'], { cwd: tempCwd });
+    assert.equal(result2.status, 0);
+    assert.notEqual(readFileSync(resolve(tempCwd, 'AGENTS.md'), 'utf8'), 'custom-agents-content');
+    assert.notEqual(readFileSync(resolve(tempCwd, '.agents', 'skills', 'capture', 'SKILL.md'), 'utf8'), 'custom-capture-skill');
+  } finally {
+    rmSync(tempCwd, { recursive: true, force: true });
+  }
+});
