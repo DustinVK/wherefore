@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Claude Code skills.",
-    "version": "1.0.1"
+    "version": "1.0.0"
   },
   "plugins": [
     {
