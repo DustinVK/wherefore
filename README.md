@@ -5,7 +5,7 @@
 </picture>
 
 # wherefore: the why behind your code
-A Claude Code skill that generates a decision log as plain markdown files in your
+A Claude Code (and other agent) skill that generates a decision log as plain markdown files in your
 repo. Paste in a discussion and it writes what was decided, why, and what was ruled
 out. No cloud, no database, just files committed next to your code.
 
