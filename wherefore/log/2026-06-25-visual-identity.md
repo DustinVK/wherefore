@@ -26,7 +26,7 @@ blinking cursor). Palette carried over from the dashboard and personal site.
 The terminal caret was too visually busy next to the three-dot mark. The decisive constraint
 was favicon size: the dot mark drawn as geometry survives to 16px, which a nine-letter
 wordmark in a mono font never could. Moving to a clean grotesk makes the product read as a
-settled tool rather than a hacker sketch. The "because" operator is semantically precise --
+settled tool rather than a hacker sketch. The "because" operator is semantically precise:
 wherefore records the reasons behind decisions.
 
 ## Alternatives considered

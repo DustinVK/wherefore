@@ -1,6 +1,6 @@
 ---
 date: 2026-06-24
-title: Manual supersession lives in its own skill
+title: "Manual supersession lives in its own skill"
 areas: [plugin]
 topics: [supersession, skill-structure]
 stories: []

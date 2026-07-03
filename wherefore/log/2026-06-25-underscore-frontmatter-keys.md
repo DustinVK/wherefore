@@ -19,7 +19,7 @@ Wherefore frontmatter had a split convention: log entries used hyphenated keys (
 - Existing data files were migrated (key names only, values unchanged) with a backup and file-count check to prevent loss.
 
 ## Why
-The dashboard schema already used underscore, so the log files were already the odd one out -- and the mismatch was actively causing supersession links to be silently dropped. Underscore is the safer YAML/templating choice: hyphenated keys are valid YAML but cannot be accessed as bare identifiers in most templating languages and trip some parsers. The migration was done while the data set is small and entirely team-owned; once other projects have wherefore directories full of entries, renaming a frontmatter key becomes a breaking migration requiring a tool.
+The dashboard schema already used underscore, so the log files were already the odd one out, and the mismatch was actively causing supersession links to be silently dropped. Underscore is the safer YAML/templating choice: hyphenated keys are valid YAML but cannot be accessed as bare identifiers in most templating languages and trip some parsers. The migration was done while the data set is small and entirely team-owned; once other projects have wherefore directories full of entries, renaming a frontmatter key becomes a breaking migration requiring a tool.
 
 ## Alternatives considered
 - Hyphenated keys everywhere: rejected because content.config.ts would have needed to change and hyphenated keys cause subtle failures in templating.

@@ -1,6 +1,6 @@
 ---
 date: 2026-06-24
-title: Dashboard package in its own repo
+title: "Dashboard package in its own repo"
 areas: [repo-structure]
 topics: [publishing]
 stories: []
