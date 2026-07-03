@@ -34,6 +34,23 @@ npx @dustinvk/wherefore-dashboard build \
   --title "My Project Wherefore"
 ```
 
+## Running from a local clone (without npx)
+
+If you have this repo checked out, you can run the CLI directly with `node`, skipping `npx` entirely. Install dependencies once, then call the bin script:
+
+```bash
+cd packages/wherefore-dashboard
+npm install
+
+# live dashboard with hot reload
+node bin/wherefore-dashboard.js dev --src /path/to/your/wherefore
+
+# build a static site
+node bin/wherefore-dashboard.js build --src /path/to/your/wherefore --out ./dist
+```
+
+The same `--src`, `--out`, and `--title` flags apply. `--src` defaults to `./wherefore` relative to your current directory, so point it at the project whose log you want to render. The `npm run dev` script in this package wraps the same command.
+
 ## Viewing a build locally
 
 A built site uses absolute asset paths, so it must be served over HTTP. Opening `dist/index.html` directly in the browser (a `file://` URL) loads the page but not the styles. To preview a build, serve the folder:

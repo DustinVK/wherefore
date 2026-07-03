@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&display=swap");
+
 /* ── Brand tokens ─────────────────────────────────────────── */
 :root {
   --ground:      #14151a;
@@ -650,3 +652,234 @@ html[data-theme="light"] .row-obs .entry-title { text-decoration-color: rgba(0,0
 html[data-theme="light"] .toggle-track { background: #e5e7ea; }
 html[data-theme="light"] .toggle-cb:checked ~ .filter-toggle .toggle-track { border-color: rgba(37,138,132,.3); }
 html[data-theme="light"] .theme-toggle::before { content: '●'; }
+
+/* ============================================================
+   1A entry reading view (folded in from wherefore-1A.css)
+   Design tokens + component styles for a single decision entry,
+   scoped under .wf-entry (rendered by log/[slug].astro). Tokens
+   are namespaced --wf-* so they don't touch the brand tokens above.
+   ============================================================ */
+
+:root {
+  /* — surfaces — */
+  --wf-text:      #e6e9ee;  /* base body text inside the card */
+  --wf-strong:    #dfe3e9;  /* bold inline (alternative option names) */
+  --wf-bg:        #07090c;  /* page / canvas behind cards */
+  --wf-card:      #12161c;  /* entry card */
+  --wf-inset:     #0f1319;  /* summary block, nested panels */
+  --wf-border:    #222933;  /* card border */
+  --wf-divider:   #1e2530;  /* rules between decision rows */
+
+  /* — text — */
+  --wf-title:     #f2f4f7;  /* entry title */
+  --wf-verdict:   #eef1f5;  /* decision lead clause */
+  --wf-body:      #c3cad4;  /* Why prose */
+  --wf-summary:   #c9d0da;  /* summary text */
+  --wf-soft:      #a7b0bc;  /* question text */
+  --wf-muted:     #8b95a3;  /* decision elaboration */
+  --wf-meta:      #6b7686;  /* dates, story ids */
+  --wf-faint:     #4a5561;  /* decision numbers */
+
+  /* — accent: teal (active / primary) — */
+  --wf-teal:      #4fd6c4;
+  --wf-teal-txt:  #7fe6da;
+  --wf-teal-bg:   rgba(79,214,196,.09);
+  --wf-teal-line: rgba(79,214,196,.20);
+  --wf-teal-pill: rgba(79,214,196,.10);
+
+  /* — status colors — */
+  --wf-amber:     #e0b44f;  /* open questions */
+  --wf-amber-bg:  rgba(224,180,79,.10);
+  --wf-amber-line:rgba(224,180,79,.25);
+  --wf-clay:      #c98a6b;  /* rejected / superseded */
+  --wf-clay-bg:   rgba(201,138,107,.10);
+  --wf-clay-line: rgba(201,138,107,.25);
+
+  /* — topic chip — */
+  --wf-chip-bg:   #1b212b;
+  --wf-chip-line: #2a323d;
+  --wf-chip-txt:  #9aa4b2;
+
+  /* — type — */
+  --wf-sans:  "IBM Plex Sans", system-ui, sans-serif;
+  --wf-mono:  "IBM Plex Mono", ui-monospace, monospace;
+  --wf-serif: "IBM Plex Serif", Georgia, serif;
+
+  --wf-radius:      16px;
+  --wf-radius-sm:   10px;
+  --wf-radius-chip: 6px;
+}
+
+/* ============================================================
+   LIGHT MODE
+   Re-binds the same --wf-* tokens on a warm paper palette.
+   Wired to this app's theme toggle, which sets data-theme on
+   <html> (see Base.astro). The prefers-color-scheme rule below
+   is the no-JS fallback and mirrors the brand-token light block
+   above, so the entry card flips together with header and list.
+   ============================================================ */
+:root[data-theme="light"] {
+  /* — surfaces — */
+  --wf-text:      #2b3138;  /* base body text inside the card */
+  --wf-strong:    #1f242b;  /* bold inline */
+  --wf-bg:        #f2f3f0;  /* page behind cards */
+  --wf-card:      #ffffff;  /* entry card */
+  --wf-inset:     #f6f7f4;  /* summary block, nested panels */
+  --wf-border:    #e3e6e1;  /* card border */
+  --wf-divider:   #ebeee8;  /* rules between decision rows */
+
+  /* — text — */
+  --wf-title:     #171b21;  /* entry title */
+  --wf-verdict:   #1f242b;  /* decision lead clause */
+  --wf-body:      #3a424c;  /* Why prose */
+  --wf-summary:   #37404a;  /* summary text */
+  --wf-soft:      #4a5560;  /* question text */
+  --wf-muted:     #616b78;  /* decision elaboration */
+  --wf-meta:      #8a94a0;  /* dates, story ids */
+  --wf-faint:     #aab2bc;  /* decision numbers */
+
+  /* — accent: teal (darkened for contrast on white) — */
+  --wf-teal:      #0c8f80;
+  --wf-teal-txt:  #0a7a6d;
+  --wf-teal-bg:   rgba(12,143,128,.08);
+  --wf-teal-line: rgba(12,143,128,.24);
+  --wf-teal-pill: rgba(12,143,128,.09);
+
+  /* — status colors (darkened) — */
+  --wf-amber:     #96700f;
+  --wf-amber-bg:  rgba(150,112,15,.10);
+  --wf-amber-line:rgba(150,112,15,.28);
+  --wf-clay:      #a35836;
+  --wf-clay-bg:   rgba(163,88,54,.10);
+  --wf-clay-line: rgba(163,88,54,.28);
+
+  /* — topic chip — */
+  --wf-chip-bg:   #eef0ec;
+  --wf-chip-line: #dfe3dd;
+  --wf-chip-txt:  #55606b;
+}
+
+@media (prefers-color-scheme: light) {
+  /* fallback only when JS hasn't forced a theme via data-theme */
+  :root:not([data-theme="dark"]) {
+    --wf-text:#2b3138; --wf-strong:#1f242b;
+    --wf-bg:#f2f3f0; --wf-card:#ffffff; --wf-inset:#f6f7f4; --wf-border:#e3e6e1; --wf-divider:#ebeee8;
+    --wf-title:#171b21; --wf-verdict:#1f242b; --wf-body:#3a424c; --wf-summary:#37404a;
+    --wf-soft:#4a5560; --wf-muted:#616b78; --wf-meta:#8a94a0; --wf-faint:#aab2bc;
+    --wf-teal:#0c8f80; --wf-teal-txt:#0a7a6d; --wf-teal-bg:rgba(12,143,128,.08); --wf-teal-line:rgba(12,143,128,.24); --wf-teal-pill:rgba(12,143,128,.09);
+    --wf-amber:#96700f; --wf-amber-bg:rgba(150,112,15,.10); --wf-amber-line:rgba(150,112,15,.28);
+    --wf-clay:#a35836; --wf-clay-bg:rgba(163,88,54,.10); --wf-clay-line:rgba(163,88,54,.28);
+    --wf-chip-bg:#eef0ec; --wf-chip-line:#dfe3dd; --wf-chip-txt:#55606b;
+  }
+}
+
+/* ---------- shell ---------- */
+.wf-entry {
+  font-family: var(--wf-sans);
+  color: var(--wf-text);
+  background: var(--wf-card);
+  border: 1px solid var(--wf-border);
+  border-radius: var(--wf-radius);
+  padding: 30px;
+  max-width: 640px;
+}
+
+/* inline code (deriveView, isOnHost, feat/sidebar-nav …) — inherits the
+   color of its context (verdict, detail, why) so it adapts to both themes. */
+.wf-entry code {
+  font-family: var(--wf-mono);
+  font-size: .9em;
+  color: inherit;
+}
+/* standalone code chips (e.g. a branch name) get a faint token-based tint */
+.wf-entry .wf-code {
+  background: var(--wf-chip-bg);
+  border: 1px solid var(--wf-chip-line);
+  border-radius: 5px;
+  padding: 1px 5px;
+}
+
+/* ---------- logo ---------- */
+.wf-logo { display:flex; align-items:center; gap:9px; margin-bottom:22px; }
+.wf-logo b { font-weight:600; font-size:15px; letter-spacing:-.01em; color:var(--wf-title); }
+.wf-logo .mark { position:relative; width:22px; height:22px; }
+.wf-logo .mark i { position:absolute; width:7px; height:7px; border-radius:50%; background:var(--wf-teal); }
+.wf-logo .mark i:nth-child(1){ left:2px;  top:2px;  }
+.wf-logo .mark i:nth-child(2){ left:12px; top:4px;  opacity:.55; }
+.wf-logo .mark i:nth-child(3){ left:3px;  top:12px; opacity:.55; }
+.wf-logo .mark i:nth-child(4){ left:13px; top:13px; opacity:.85; }
+
+/* ---------- title + status ---------- */
+.wf-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+.wf-title { font-weight:600; font-size:22px; line-height:1.25; letter-spacing:-.01em; margin:0; color:var(--wf-title); }
+
+.wf-status {
+  flex:none; display:inline-flex; align-items:center; gap:6px;
+  font-family:var(--wf-mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase;
+  padding:4px 9px; border-radius:999px;
+  color:var(--wf-teal); background:var(--wf-teal-pill); border:1px solid var(--wf-teal-line);
+}
+.wf-status::before { content:""; width:6px; height:6px; border-radius:50%; background:currentColor; }
+.wf-status.is-superseded { color:var(--wf-clay); background:var(--wf-clay-bg); border-color:var(--wf-clay-line); }
+.wf-status.is-obsolete  { color:var(--wf-meta); background:var(--wf-chip-bg); border-color:var(--wf-chip-line); }
+
+/* ---------- meta chips ---------- */
+.wf-meta { display:flex; flex-wrap:wrap; gap:7px; align-items:center; margin-top:14px; }
+.wf-chip { font-family:var(--wf-mono); font-size:11px; padding:3px 8px; border-radius:var(--wf-radius-chip); }
+.wf-chip.area  { color:var(--wf-teal-txt); background:var(--wf-teal-bg); border:1px solid var(--wf-teal-line); }
+.wf-chip.topic { color:var(--wf-chip-txt); background:var(--wf-chip-bg); border:1px solid var(--wf-chip-line); }
+.wf-chip.story { color:var(--wf-meta); }
+.wf-date { font-family:var(--wf-mono); font-size:11px; color:var(--wf-meta); margin-left:auto; }
+
+/* ---------- summary ---------- */
+.wf-summary {
+  margin-top:20px; padding:16px 18px;
+  background:var(--wf-inset); border:1px solid var(--wf-divider);
+  border-left:2px solid var(--wf-teal); border-radius:var(--wf-radius-sm);
+}
+.wf-summary p { font-family:var(--wf-serif); font-size:15px; line-height:1.6; color:var(--wf-summary); margin:0; }
+
+/* ---------- section labels ---------- */
+.wf-label {
+  font-family:var(--wf-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--wf-teal); margin:28px 0 4px;
+}
+.wf-label.warn { color:var(--wf-amber); margin-bottom:12px; }
+
+/* ---------- decisions: verdict-led rows ----------
+   Markup:
+   <div class="wf-decision"><span class="n">01</span>
+     <div><p class="verdict">…lead clause…</p><p class="detail">…elaboration…</p></div>
+   </div>
+   If you render from markdown, treat the FIRST sentence of each <li> as .verdict
+   and the remainder as .detail. */
+.wf-decision { display:flex; gap:14px; padding:15px 0; border-top:1px solid var(--wf-divider); }
+.wf-decision .n { flex:none; font-family:var(--wf-mono); font-size:12px; color:var(--wf-faint); padding-top:2px; }
+.wf-decision .verdict { font-weight:600; font-size:15px; line-height:1.4; color:var(--wf-verdict); margin:0; }
+.wf-decision .detail  { font-size:14px; line-height:1.55; color:var(--wf-muted); margin:5px 0 0; }
+
+/* ---------- why (long-form serif) ---------- */
+.wf-why { font-family:var(--wf-serif); font-size:15px; line-height:1.68; color:var(--wf-body); margin:0; }
+.wf-why + .wf-why { margin-top:14px; }
+
+/* ---------- alternatives ---------- */
+.wf-alts { display:flex; flex-direction:column; gap:12px; }
+.wf-alt { display:flex; gap:12px; align-items:baseline; }
+.wf-alt .tag {
+  flex:none; font-family:var(--wf-mono); font-size:10px; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--wf-clay); background:var(--wf-clay-bg); border:1px solid var(--wf-clay-line);
+  padding:2px 7px; border-radius:5px;
+}
+.wf-alt .txt { font-size:14px; line-height:1.5; }
+.wf-alt .txt b { font-weight:600; color:var(--wf-strong); }
+.wf-alt .txt span { color:var(--wf-muted); }
+
+/* ---------- open questions ---------- */
+.wf-qs { display:flex; flex-direction:column; gap:12px; }
+.wf-q { display:flex; gap:12px; align-items:baseline; }
+.wf-q .id {
+  flex:none; font-family:var(--wf-mono); font-size:11px; font-weight:600;
+  color:var(--wf-amber); background:var(--wf-amber-bg); border:1px solid var(--wf-amber-line);
+  padding:3px 8px; border-radius:6px;
+}
+.wf-q .txt { font-size:14px; line-height:1.55; color:var(--wf-soft); }

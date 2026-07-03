@@ -2,7 +2,6 @@
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import { parseEntry, renderInline } from '../../lib/entry-sections';
-import '../../styles/wherefore-1A.css';
 
 export async function getStaticPaths() {
   const entries = await getCollection('log');
