@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { build, dev } from 'astro';
-import { cp, rm, readFile, writeFile, mkdir } from 'node:fs/promises';
+import { cp, rm, readFile, writeFile, mkdir, rename } from 'node:fs/promises';
 import { existsSync, statSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -131,7 +131,10 @@ if (command === 'build') {
   const isGlobal = flags.global === 'true' || rawArgs.includes('--global');
   const isForce = flags.force === 'true' || rawArgs.includes('--force') || rawArgs.includes('-f');
   const targetRoot = process.cwd();
-  
+  // Track whether any step actually errored (not just "already exists / skipped")
+  // so init can do as much setup as possible and still exit non-zero at the end.
+  let hadError = false;
+
   // 1. Read dashboard version from package.json
   let dashboardVersion = 'latest';
   try {
@@ -159,6 +162,7 @@ if (command === 'build') {
       console.log('  Created wherefore/topics.md from seed template.');
     } catch (err) {
       console.warn(`  Warning: Could not seed topics.md: ${err.message}`);
+      hadError = true;
     }
   } else {
     console.log('  wherefore/topics.md already exists, skipping seed.');
@@ -188,6 +192,7 @@ if (command === 'build') {
       }
     } catch (err) {
       console.warn(`  Warning: Could not update package.json: ${err.message}`);
+      hadError = true;
     }
   }
 
@@ -219,6 +224,7 @@ if (command === 'build') {
       console.log(`  Created AGENTS.md in project root${isForce && agentsExists ? ' (overwritten)' : ''}.`);
     } catch (err) {
       console.warn(`  Warning: Could not create AGENTS.md: ${err.message}`);
+      hadError = true;
     }
   } else {
     console.log('  AGENTS.md already exists, skipping. Pass --force to overwrite.');
@@ -243,6 +249,7 @@ if (command === 'build') {
     }
   } catch (err) {
     console.warn(`  Warning: Could not configure CLAUDE.md: ${err.message}`);
+    hadError = true;
   }
 
   // 7. Install Antigravity Skills
@@ -256,8 +263,13 @@ if (command === 'build') {
         const dest = resolve(globalSkillsDir, skill);
         const exists = existsSync(dest);
         if (!exists || isForce) {
+          // Copy into a temp dir and swap in, so a failed copy never leaves the
+          // skill deleted with no replacement.
+          const tmpDest = `${dest}.tmp`;
+          await rm(tmpDest, { recursive: true, force: true });
+          await cp(resolve(PACKAGE_ROOT, 'skills', skill), tmpDest, { recursive: true });
           if (exists) await rm(dest, { recursive: true, force: true });
-          await cp(resolve(PACKAGE_ROOT, 'skills', skill), dest, { recursive: true });
+          await rename(tmpDest, dest);
           console.log(`  Installed global skill '${skill}'${isForce && exists ? ' (overwritten)' : ''}.`);
         } else {
           console.log(`  Skipped global skill '${skill}' (already exists). Pass --force to overwrite.`);
@@ -265,7 +277,7 @@ if (command === 'build') {
       }
     } catch (err) {
       console.error(`  Error installing global skills: ${err.message}`);
-      process.exit(1);
+      hadError = true;
     }
   } else {
     const localSkillsDir = resolve(targetRoot, '.agents', 'skills');
@@ -277,8 +289,13 @@ if (command === 'build') {
         const dest = resolve(localSkillsDir, skill);
         const exists = existsSync(dest);
         if (!exists || isForce) {
+          // Copy into a temp dir and swap in, so a failed copy never leaves the
+          // skill deleted with no replacement.
+          const tmpDest = `${dest}.tmp`;
+          await rm(tmpDest, { recursive: true, force: true });
+          await cp(resolve(PACKAGE_ROOT, 'skills', skill), tmpDest, { recursive: true });
           if (exists) await rm(dest, { recursive: true, force: true });
-          await cp(resolve(PACKAGE_ROOT, 'skills', skill), dest, { recursive: true });
+          await rename(tmpDest, dest);
           console.log(`  Installed local skill '${skill}'${isForce && exists ? ' (overwritten)' : ''}.`);
         } else {
           console.log(`  Skipped local skill '${skill}' (already exists). Pass --force to overwrite.`);
@@ -286,8 +303,13 @@ if (command === 'build') {
       }
     } catch (err) {
       console.error(`  Error installing local skills: ${err.message}`);
-      process.exit(1);
+      hadError = true;
     }
+  }
+
+  if (hadError) {
+    console.error('\nInitialization completed with errors (see warnings above).');
+    process.exit(1);
   }
 
   console.log('\nInitialization complete! All set up.');
