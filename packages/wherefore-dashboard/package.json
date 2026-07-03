@@ -38,9 +38,10 @@
     "templates"
   ],
   "scripts": {
-    "dev": "node bin/wherefore-dashboard.js dev",
-    "build": "node bin/wherefore-dashboard.js build --src tests/fixtures/wherefore --out .test-dist",
-    "test": "node --test --test-concurrency=1"
+    "dev": "node bin/prepare-package.js && node bin/wherefore-dashboard.js dev",
+    "build": "node bin/prepare-package.js && node bin/wherefore-dashboard.js build --src tests/fixtures/wherefore --out .test-dist",
+    "test": "node bin/prepare-package.js && node --test --test-concurrency=1",
+    "prepack": "node bin/prepare-package.js"
   },
   "dependencies": {
     "astro": "^7.0.0"

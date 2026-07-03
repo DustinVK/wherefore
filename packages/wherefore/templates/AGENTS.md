@@ -12,6 +12,7 @@ wherefore/
   topics.md         controlled tag vocabulary: Areas and Topics
   log/YYYY-MM-DD-short-slug.md    one decision per file
   questions/Q-NNN.md              one question per file
+  plan/short-slug.md              forward-looking plans and roadmaps, one per file
 ```
 
 There is no index file. The frontmatter in each `log/` and `questions/` file is the
