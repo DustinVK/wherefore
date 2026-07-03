@@ -62,6 +62,19 @@ function parseArgs(argv) {
   return { command, flags };
 }
 
+// The CLAUDE.snippet.md template wraps the pasteable convention block in marker
+// comments and precedes it with human-facing paste instructions. Install only the
+// block between the markers so those instructions do not leak into CLAUDE.md.
+function extractSnippetBlock(content) {
+  const start = content.indexOf('paste from here');
+  const end = content.indexOf('to here', start + 1);
+  if (start === -1 || end === -1) return content.trim();
+  const afterStart = content.indexOf('-->', start);
+  const beforeEnd = content.lastIndexOf('<!--', end);
+  if (afterStart === -1 || beforeEnd === -1 || afterStart >= beforeEnd) return content.trim();
+  return content.slice(afterStart + 3, beforeEnd).trim();
+}
+
 const { command, flags } = parseArgs(process.argv);
 
 const rawArgs = process.argv.slice(2);
@@ -163,7 +176,12 @@ if (command === 'build') {
       const hasDep = pkg.devDependencies['@dustinvk/wherefore-dashboard'] || pkg.dependencies['@dustinvk/wherefore-dashboard'];
       if (!hasDep) {
         pkg.devDependencies['@dustinvk/wherefore-dashboard'] = dashboardVersion;
-        await writeFile(targetPkgJsonPath, JSON.stringify(pkg, null, 2), 'utf8');
+        // Preserve the file's existing indentation and trailing newline so init
+        // adds one line rather than reformatting the whole file into a noisy diff.
+        const indentMatch = pkgContent.match(/\n([ \t]+)"/);
+        const indent = indentMatch ? indentMatch[1] : 2;
+        const trailingNewline = pkgContent.endsWith('\n') ? '\n' : '';
+        await writeFile(targetPkgJsonPath, JSON.stringify(pkg, null, indent) + trailingNewline, 'utf8');
         console.log('  Added @dustinvk/wherefore-dashboard to devDependencies in package.json.');
       } else {
         console.log('  @dustinvk/wherefore-dashboard already in package.json.');
@@ -179,14 +197,16 @@ if (command === 'build') {
   if (existsSync(gitignorePath)) {
     gitignoreContent = await readFile(gitignorePath, 'utf8');
   }
+  const existingIgnores = new Set(gitignoreContent.split('\n').map((line) => line.trim()));
   const linesToAppend = [];
-  if (!gitignoreContent.includes('dist/')) linesToAppend.push('dist/');
-  if (!gitignoreContent.includes('.test-dist/')) linesToAppend.push('.test-dist/');
-  
+  // Match whole lines: a nested `frontend/dist/` must not mask a missing top-level
+  // `dist/` rule (the default build output the consumer actually produces).
+  if (!existingIgnores.has('dist/')) linesToAppend.push('dist/');
+
   if (linesToAppend.length > 0) {
     const divider = gitignoreContent.length === 0 || gitignoreContent.endsWith('\n') ? '' : '\n';
     await writeFile(gitignorePath, gitignoreContent + divider + linesToAppend.join('\n') + '\n', 'utf8');
-    console.log('  Updated .gitignore to ignore dashboard build outputs.');
+    console.log('  Updated .gitignore to ignore dashboard build output.');
   }
 
   // 5. Install AGENTS.md
@@ -208,15 +228,15 @@ if (command === 'build') {
   const claudePath = resolve(targetRoot, 'CLAUDE.md');
   const templateSnippetPath = resolve(PACKAGE_ROOT, 'templates', 'CLAUDE.snippet.md');
   try {
-    const snippetContent = await readFile(templateSnippetPath, 'utf8');
+    const snippetContent = extractSnippetBlock(await readFile(templateSnippetPath, 'utf8'));
     let existingClaude = '';
     if (existsSync(claudePath)) {
       existingClaude = await readFile(claudePath, 'utf8');
     }
-    
-    if (!existingClaude.includes('## Wherefore') && !existingClaude.includes('wherefore plugin')) {
+
+    if (!existingClaude.includes('## Wherefore')) {
       const divider = existingClaude.length === 0 || existingClaude.endsWith('\n') ? '' : '\n';
-      await writeFile(claudePath, existingClaude + divider + snippetContent, 'utf8');
+      await writeFile(claudePath, existingClaude + divider + snippetContent + '\n', 'utf8');
       console.log('  Appended wherefore snippet to CLAUDE.md.');
     } else {
       console.log('  CLAUDE.md already configured for wherefore plugin, skipping.');

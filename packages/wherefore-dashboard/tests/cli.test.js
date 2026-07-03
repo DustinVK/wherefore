@@ -85,16 +85,20 @@ test('init command scaffolds expected directories and files', () => {
     const updatedPkg = JSON.parse(readFileSync(resolve(tempCwd, 'package.json'), 'utf8'));
     assert.ok(updatedPkg.devDependencies['@dustinvk/wherefore-dashboard'], 'missing devDependency');
 
-    // Verify .gitignore updated
-    const gitignore = readFileSync(resolve(tempCwd, '.gitignore'), 'utf8');
-    assert.ok(gitignore.includes('dist/'), 'missing dist/ in gitignore');
-    assert.ok(gitignore.includes('.test-dist/'), 'missing .test-dist/ in gitignore');
+    // Verify .gitignore updated (whole-line match; internal .test-dist/ must not leak)
+    const ignoreLines = readFileSync(resolve(tempCwd, '.gitignore'), 'utf8')
+      .split('\n').map((l) => l.trim());
+    assert.ok(ignoreLines.includes('dist/'), 'missing dist/ in gitignore');
+    assert.ok(!ignoreLines.includes('.test-dist/'), 'should not add internal .test-dist/ to consumer gitignore');
 
     // Verify AGENTS.md and CLAUDE.md
     assert.ok(existsSync(resolve(tempCwd, 'AGENTS.md')), 'missing AGENTS.md');
     assert.ok(existsSync(resolve(tempCwd, 'CLAUDE.md')), 'missing CLAUDE.md');
     const claudeContent = readFileSync(resolve(tempCwd, 'CLAUDE.md'), 'utf8');
     assert.ok(claudeContent.includes('## Wherefore'), 'missing CLAUDE.md snippet');
+    // Only the marked block should land, not the template's paste instructions.
+    assert.ok(!claudeContent.includes('paste from here'), 'CLAUDE.md leaked paste-marker comments');
+    assert.ok(!claudeContent.includes('Paste the block below'), 'CLAUDE.md leaked paste instructions');
 
     // Verify local Antigravity skills
     assert.ok(existsSync(resolve(tempCwd, '.agents', 'skills', 'capture', 'SKILL.md')), 'missing capture skill');
@@ -130,6 +134,40 @@ test('init command skips existing files and overwrites with --force', () => {
     assert.equal(result2.status, 0);
     assert.notEqual(readFileSync(resolve(tempCwd, 'AGENTS.md'), 'utf8'), 'custom-agents-content');
     assert.notEqual(readFileSync(resolve(tempCwd, '.agents', 'skills', 'capture', 'SKILL.md'), 'utf8'), 'custom-capture-skill');
+  } finally {
+    rmSync(tempCwd, { recursive: true, force: true });
+  }
+});
+
+test('init adds a top-level dist/ rule even when a nested dist/ is already ignored', () => {
+  const tempCwd = uniqueTemp('init-gitignore-cwd');
+  mkdirSync(tempCwd, { recursive: true });
+  writeFileSync(resolve(tempCwd, '.gitignore'), 'node_modules/\nfrontend/dist/\n', 'utf8');
+  try {
+    const result = spawn(['init'], { cwd: tempCwd });
+    assert.equal(result.status, 0);
+    const ignoreLines = readFileSync(resolve(tempCwd, '.gitignore'), 'utf8')
+      .split('\n').map((l) => l.trim());
+    assert.ok(ignoreLines.includes('dist/'), 'should add a bare dist/ rule despite nested frontend/dist/');
+  } finally {
+    rmSync(tempCwd, { recursive: true, force: true });
+  }
+});
+
+test('init preserves existing package.json indentation and trailing newline', () => {
+  const tempCwd = uniqueTemp('init-pkgfmt-cwd');
+  mkdirSync(tempCwd, { recursive: true });
+  // 4-space indent + trailing newline; init must not reformat to 2-space.
+  const pkgText = JSON.stringify({ name: 'test-project', version: '1.0.0' }, null, 4) + '\n';
+  writeFileSync(resolve(tempCwd, 'package.json'), pkgText, 'utf8');
+  try {
+    const result = spawn(['init'], { cwd: tempCwd });
+    assert.equal(result.status, 0);
+    const updated = readFileSync(resolve(tempCwd, 'package.json'), 'utf8');
+    assert.ok(updated.includes('\n    "'), 'should keep 4-space indentation');
+    assert.ok(updated.endsWith('\n'), 'should keep trailing newline');
+    const parsed = JSON.parse(updated);
+    assert.ok(parsed.devDependencies['@dustinvk/wherefore-dashboard'], 'missing devDependency');
   } finally {
     rmSync(tempCwd, { recursive: true, force: true });
   }
