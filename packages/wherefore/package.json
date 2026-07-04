@@ -1,0 +1,49 @@
+{
+  "name": "wherefore",
+  "version": "0.1.0",
+  "description": "Capture and browse a repo-committed decision log. Scaffolds wherefore/, writes AGENTS.md, and (opt-in) installs skills for your coding agent.",
+  "author": "Dustin VanKrimpen",
+  "license": "MIT",
+  "keywords": [
+    "wherefore",
+    "decision-log",
+    "adr",
+    "architecture",
+    "agents",
+    "skills",
+    "cli"
+  ],
+  "homepage": "https://github.com/DustinVK/wherefore#readme",
+  "bugs": {
+    "url": "https://github.com/DustinVK/wherefore/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DustinVK/wherefore.git",
+    "directory": "packages/wherefore"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "bin": {
+    "wherefore": "bin/wherefore.js"
+  },
+  "files": [
+    "bin",
+    "skills",
+    "templates"
+  ],
+  "scripts": {
+    "prepare-package": "node bin/prepare-package.js",
+    "test": "node bin/prepare-package.js && node --test tests/cli.test.js",
+    "prepack": "node bin/prepare-package.js",
+    "prepublishOnly": "node bin/prepare-package.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.1"
+  }
+}
