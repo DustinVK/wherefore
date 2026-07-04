@@ -78,8 +78,8 @@ maintained.
   It shortlists from entry frontmatter, then reads only the matching files. After
   answering, it surfaces any still-open questions in the same area.
 - **`resolve`** -- closes out an open question by updating its
-  `wherefore/questions/Q-NNN.md` file, recording the answer, the rationale, and a
-  link to the discussion that settled it.
+  `wherefore/questions/Q-NNN-short-slug.md` file, recording the answer, the rationale,
+  and a link to the discussion that settled it.
 - **`supersede`** -- marks a past decision superseded (with a pointer to its
   replacement) or obsolete, without requiring a new discussion to be captured.
   Updates the entry file and adds a visible banner so both the `ask` skill and
@@ -240,7 +240,7 @@ Each consuming project's log lives in its own repo, not here:
 └── wherefore/
     ├── topics.md         # controlled tag vocabulary (areas + topics)
     ├── questions/
-    │   └── Q-NNN.md      # one file per question
+    │   └── Q-NNN-short-slug.md    # one file per question (ID prefix + scannable slug)
     └── log/
         └── YYYY-MM-DD-short-slug.md   # one file per independently-queryable thread
 ```

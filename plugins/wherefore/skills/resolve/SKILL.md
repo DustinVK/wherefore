@@ -26,8 +26,11 @@ summary and move detail into a `## Resolution` body section. `status` and
 
 ## Workflow
 
-1. **Find the question.** Open `wherefore/questions/Q-NNN.md` directly (the file is
-   named by its ID). If it doesn't exist, say so clearly. To list what is open,
+1. **Find the question.** Files are named `Q-NNN-short-slug.md` (ID prefix plus a
+   scannable slug), so glob by the ID rather than assuming the exact name:
+   `ls wherefore/questions/Q-042-*.md wherefore/questions/Q-042.md 2>/dev/null`
+   (the second path catches any legacy file still named `Q-NNN.md`). Expect exactly
+   one match; open it. If nothing matches, say so clearly. To list what is open,
    dump the question frontmatter and filter `status: open`:
    ```bash
    for f in wherefore/questions/Q-*.md; do
@@ -49,7 +52,7 @@ summary and move detail into a `## Resolution` body section. `status` and
      ran the `capture` skill and a fresh entry exists. If no wherefore entry captures
      it, the resolution is standalone.
 
-3. **Update `wherefore/questions/Q-NNN.md`.** Edit the frontmatter in place:
+3. **Update the question file** (`wherefore/questions/Q-NNN-short-slug.md`). Edit the frontmatter in place:
    - Set `status: resolved`
    - Fill in `resolution` with a one-sentence answer (and the why, if concise
      enough to fit; otherwise put it in a `## Resolution` body section below the
@@ -60,7 +63,7 @@ summary and move detail into a `## Resolution` body section. `status` and
 4. **Update the source wherefore entry (if applicable).** If the resolution came from
    a specific wherefore entry, open `wherefore/log/<slug>.md` and add a note in its
    "Open questions / follow-ups" section next to the relevant item:
-   `- Q-042: <question text> (resolved, see wherefore/questions/Q-042.md)`
+   `- Q-042: <question text> (resolved, see wherefore/questions/Q-042-<slug>.md)`
 
 5. **Report back.** Show:
    - The question text and its ID
@@ -74,22 +77,23 @@ summary and move detail into a `## Resolution` body section. `status` and
 **Example 1: resolution from a new discussion**
 User: "Mark Q-001 resolved: we decided to use zero-rated VAT for EU digital goods.
 We discussed it in the entry we just logged, 2026-07-01-eu-vat-strategy."
-Action: edit `wherefore/questions/Q-001.md` (status -> resolved, resolution filled,
-resolution_slug set), update that wherefore entry to note the question is resolved.
-Report both files touched.
+Action: find the file (`ls wherefore/questions/Q-001-*.md`) and edit it (status ->
+resolved, resolution filled, resolution_slug set), update that wherefore entry to
+note the question is resolved. Report both files touched.
 
 **Example 2: standalone resolution**
 User: "Close Q-007. We're not doing offline sync this quarter, pushed to Q3."
-Action: edit `wherefore/questions/Q-007.md` (status -> resolved, resolution filled,
-resolution_slug left blank). No wherefore entry to update. Report the file touched.
+Action: edit the Q-007 file (`wherefore/questions/Q-007-*.md`) (status -> resolved,
+resolution filled, resolution_slug left blank). No wherefore entry to update. Report
+the file touched.
 
 **Example 3: question not found**
 User: "Resolve Q-099"
-Action: `wherefore/questions/Q-099.md` doesn't exist. Respond: "Q-099 wasn't found
+Action: no `wherefore/questions/Q-099-*.md` matches. Respond: "Q-099 wasn't found
 in wherefore/questions/. Check the ID; I can list the open questions if that helps."
 
 **Example 4: already resolved**
 User: "Mark Q-002 resolved"
-Action: open `wherefore/questions/Q-002.md`; status is already resolved. Show the
+Action: open the Q-002 file (`wherefore/questions/Q-002-*.md`); status is already resolved. Show the
 recorded resolution date and text and make no changes, e.g. "Q-002 was resolved on
 2026-06-24: zero-rated VAT for EU digital goods. No changes made."
