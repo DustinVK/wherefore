@@ -44,7 +44,7 @@ wherefore/
 ├── README.md          # what this directory is + link to the plugin
 ├── topics.md          # controlled tag vocabulary (areas + topics)
 ├── questions/
-│   └── Q-NNN.md       # one file per question
+│   └── Q-NNN-short-slug.md   # one file per question (ID prefix + scannable slug)
 └── log/
     └── YYYY-MM-DD-short-slug.md   # one file per discussion
 ```
@@ -149,9 +149,9 @@ scalar to a one-line summary and move the detail into a body section.
 8. Write `wherefore/log/YYYY-MM-DD-short-slug.md`. Slug short, lowercase, hyphenated, recognizable (`oauth-token-refresh`, not `discussion-about-the-auth-stuff`). If the name exists, add a short suffix; never overwrite.
 
 9. Register open questions. For each genuine unresolved item:
-    - Next Q-ID = (highest `id:` across `wherefore/questions/Q-*.md`) + 1. Derive it from the files, e.g. `ls wherefore/questions/Q-*.md 2>/dev/null | sed -E 's|.*/Q-0*([0-9]+)\.md|\1|' | sort -n | tail -1`. If the directory is empty or absent, start at Q-001. IDs are sequential and never reused.
+    - Next Q-ID = (highest `id:` across `wherefore/questions/Q-*.md`) + 1. Derive it from the files, e.g. `ls wherefore/questions/Q-*.md 2>/dev/null | sed -E 's|.*/Q-0*([0-9]+).*|\1|' | sort -n | tail -1`. If the directory is empty or absent, start at Q-001. IDs are sequential and never reused. (The regex tolerates both the legacy `Q-NNN.md` and the current `Q-NNN-slug.md` naming.)
     - Prefix the entry's item with the ID: `- Q-001: How should we ...`
-    - Create `wherefore/questions/Q-NNN.md`, leaving `resolution` and `resolution_slug` blank:
+    - Create `wherefore/questions/Q-NNN-short-slug.md`, leaving `resolution` and `resolution_slug` blank. Name it like a log entry: `Q-` + the zero-padded ID + a short, lowercase, hyphenated slug distilled from the question (`Q-001-eu-buyer-tax`, not `Q-001-question-about-tax-stuff`). The `Q-NNN` prefix keeps questions sorted and greppable by number; the slug is for human scanning; the authoritative ID is always the `id:` frontmatter field.
       ```
       ---
       id: Q-001
@@ -178,6 +178,6 @@ scalar to a one-line summary and move the detail into a body section.
 
 Reversal. Input: "We're dropping RLS and going schema-per-tenant after the perf testing." Before writing, dump entry frontmatter and scan for active entries sharing `multi-tenancy` or `postgres`, surface the RLS entry, and confirm the reversal. On confirmation, write the new entry with `supersedes: 2026-06-23-rls-tenant-isolation`, mutate the old entry's frontmatter (`status: superseded`, `superseded_by`, `superseded_date`) and add its banner line, and report every file touched.
 
-No decision. Input: a long thread weighing GraphQL caching with no conclusion. The Decisions section reads "No decision, see Open questions"; the contenders go under Open questions, each becoming a `Q-NNN.md` so a later discussion can close them out explicitly.
+No decision. Input: a long thread weighing GraphQL caching with no conclusion. The Decisions section reads "No decision, see Open questions"; the contenders go under Open questions, each becoming a `Q-NNN-short-slug.md` so a later discussion can close them out explicitly.
 
 Two threads in one discussion. Input: a thread covering both an order PDF renderer swap and a separate cart price-suggestion feature, which share no causal link. Write two files (`2026-06-24-order-pdf-renderer.md`, `2026-06-24-buyer-price-suggestion.md`), each with its own tags. Report: "Split into 2 entries; the two decisions are unrelated and would be retrieved separately."

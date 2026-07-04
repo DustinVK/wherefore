@@ -11,7 +11,7 @@ location; if `wherefore/` exists, use it.
 wherefore/
   topics.md         controlled tag vocabulary: Areas and Topics
   log/YYYY-MM-DD-short-slug.md    one decision per file
-  questions/Q-NNN.md              one question per file
+  questions/Q-NNN-short-slug.md   one question per file (ID prefix + scannable slug)
 ```
 
 There is no index file. The frontmatter in each `log/` and `questions/` file is the
@@ -96,7 +96,11 @@ For an abandoned decision with no replacement: `status: obsolete`, a
 
 When a decision leaves something unresolved, register it. Next Q-ID = (highest `id:`
 across the existing `wherefore/questions/Q-*.md` files) + 1; IDs are sequential and
-never reused. Create `wherefore/questions/Q-NNN.md` with this EXACT frontmatter:
+never reused. Create `wherefore/questions/Q-NNN-short-slug.md` (the `Q-NNN` prefix is
+the zero-padded ID; the slug is a short, lowercase, hyphenated summary distilled from
+the question, same style as a log slug). The `id:` frontmatter field remains the
+authoritative ID; the filename slug is only for human scanning. Use this EXACT
+frontmatter:
 
 ```markdown
 ---

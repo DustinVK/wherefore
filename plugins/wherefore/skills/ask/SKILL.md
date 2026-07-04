@@ -27,7 +27,7 @@ The wherefore lives under a repo-relative `wherefore/` directory:
 wherefore/
 ├── topics.md                     # controlled topic vocabulary
 ├── questions/
-│   └── Q-NNN.md                  # one file per question
+│   └── Q-NNN-short-slug.md       # one file per question (ID prefix + scannable slug)
 └── log/
     └── YYYY-MM-DD-short-slug.md  # one file per discussion
 ```
