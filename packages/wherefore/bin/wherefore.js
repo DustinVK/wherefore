@@ -11,25 +11,27 @@ const PACKAGE_ROOT = resolve(__dirname, '..');
 
 // The dashboard lives in its own (astro-heavy) package; `wherefore` stays lean and
 // launches it on demand. WHEREFORE_DASHBOARD_BIN overrides the target for local dev/tests.
-const DASHBOARD_PKG = '@dustinvk/wherefore-dashboard';
+    const DASHBOARD_PKG = '@dustinvk/wherefore-dashboard';
 
 const USAGE = `wherefore -- capture and browse a repo-committed decision log
 
 Usage:
-  wherefore init      [--skills] [--agent <list>] [--global] [--force]
+  wherefore init      [--agent <list>] [--no-skills] [--global] [--force]
   wherefore dashboard [...args]      launch the dashboard (forwards to ${DASHBOARD_PKG})
 
 Options:
-  --skills          (experimental) also install the wherefore skills for your agent(s).
-  --agent <list>    (experimental) comma-separated agents to install skills for:
+  --agent <list>    comma-separated agents to install skills for:
                     claude, codex, copilot, cursor, gemini, antigravity, all, auto.
-                    Default (with --skills, no --agent): the shared .agents/skills/ path.
+                    Default: auto -- detect agents from the project, falling back to
+                    the shared .agents/skills/ path when none are detected.
+  --no-skills       scaffold the log and AGENTS.md floor only; install no agent skills.
   --global          install skills into your user-level dirs instead of the project.
   --force, -f       overwrite existing skills and configuration files.
   -h, --help        show this help.
 
 init scaffolds a wherefore/ log, writes an AGENTS.md so any agent can read it, and
-(opt-in) installs SKILL.md skills for the agents you name.`;
+installs the wherefore SKILL.md skills for your agent (auto-detected by default).
+Pass --agent to target specific agents, or --no-skills to skip skill install.`;
 
 // Map an --agent name to the skills dir it auto-discovers (project-relative).
 // copilot/cursor/gemini/antigravity all read the shared .agents/skills path.
@@ -83,17 +85,16 @@ function extractSnippetBlock(content) {
 // Resolve the requested agents to a deduped list of absolute skill dirs.
 function resolveSkillDirs({ agentArg, isGlobal, targetRoot }) {
   let rel; // project-relative skill dirs
-  if (!agentArg) {
-    rel = ['.agents/skills']; // bare --skills -> the shared interop path
-  } else if (agentArg === 'all') {
+  if (agentArg === 'all') {
     rel = ['.claude/skills', '.codex/skills', '.agents/skills'];
   } else if (agentArg === 'auto') {
     const detected = new Set();
     for (const { marker, agent } of AUTO_MARKERS) {
       if (existsSync(resolve(targetRoot, marker))) detected.add(AGENT_DIRS[agent]);
     }
-    if (detected.size === 0) return { dirs: [], error: 'no known agent markers found for --agent auto' };
-    rel = [...detected];
+    // Nothing detected: fall back to the shared interop path so the default install
+    // still lands something usable, rather than erroring on a fresh project.
+    rel = detected.size ? [...detected] : ['.agents/skills'];
   } else {
     const names = agentArg.split(',').map((s) => s.trim()).filter(Boolean);
     const unknown = names.filter((n) => !(n in AGENT_DIRS));
@@ -136,10 +137,27 @@ if (command === 'dashboard') {
 } else if (command === 'init') {
   const isGlobal = rawArgs.includes('--global');
   const isForce = rawArgs.includes('--force') || rawArgs.includes('-f');
+  const noSkills = rawArgs.includes('--no-skills');
   const targetRoot = process.cwd();
   // Track whether any step actually errored (not just "already exists / skipped")
   // so init can do as much setup as possible and still exit non-zero at the end.
   let hadError = false;
+
+  // Skills install is ON by default; --no-skills opts out, --agent overrides the
+  // target. Resolve the install targets NOW, before we scaffold, so `--agent auto`
+  // (the default) detects the project's pre-existing agent markers -- not the
+  // AGENTS.md / CLAUDE.md that init itself is about to write. Snapshotting here is
+  // what keeps auto from always matching the CLAUDE.md marker init just created.
+  const wantsSkills = !noSkills;
+  let skillDirs = [];
+  let skillError = null;
+  if (wantsSkills) {
+    ({ dirs: skillDirs, error: skillError } = resolveSkillDirs({
+      agentArg: flags.agent ?? 'auto',
+      isGlobal,
+      targetRoot,
+    }));
+  }
 
   // 1. Read this CLI's version to pin the consumer's devDependency.
   let cliVersion = 'latest';
@@ -258,43 +276,40 @@ if (command === 'dashboard') {
     hadError = true;
   }
 
-  // 7. Install agent skills (experimental, opt-in)
-  const hasAgentArg = rawArgs.includes('--agent');
-  const wantsSkills = rawArgs.includes('--skills') || isGlobal || hasAgentArg;
-  if (wantsSkills) {
-    const { dirs, error } = resolveSkillDirs({ agentArg: flags.agent, isGlobal, targetRoot });
-    if (error) {
-      console.error(`  Error: ${error}`);
-      hadError = true;
-    } else {
-      for (const skillsDir of dirs) {
-        console.log(`Installing skills into ${skillsDir}...`);
-        try {
-          await mkdir(skillsDir, { recursive: true });
-          for (const skill of ['capture', 'ask', 'resolve', 'supersede']) {
-            const dest = resolve(skillsDir, skill);
-            const exists = existsSync(dest);
-            if (!exists || isForce) {
-              // Copy into a temp dir and swap in, so a failed copy never leaves the
-              // skill deleted with no replacement.
-              const tmpDest = `${dest}.tmp`;
-              await rm(tmpDest, { recursive: true, force: true });
-              await cp(resolve(PACKAGE_ROOT, 'skills', skill), tmpDest, { recursive: true });
-              if (exists) await rm(dest, { recursive: true, force: true });
-              await rename(tmpDest, dest);
-              console.log(`  Installed skill '${skill}'${isForce && exists ? ' (overwritten)' : ''}.`);
-            } else {
-              console.log(`  Skipped skill '${skill}' (already exists). Pass --force to overwrite.`);
-            }
+  // 7. Install agent skills (on by default; --no-skills opts out). Targets were
+  // resolved up front against the project's pre-scaffold state (see above), so
+  // auto-detection is not fooled by the AGENTS.md / CLAUDE.md written in between.
+  if (!wantsSkills) {
+    console.log('Skipping agent skill install (--no-skills).');
+  } else if (skillError) {
+    console.error(`  Error: ${skillError}`);
+    hadError = true;
+  } else {
+    for (const skillsDir of skillDirs) {
+      console.log(`Installing skills into ${skillsDir}...`);
+      try {
+        await mkdir(skillsDir, { recursive: true });
+        for (const skill of ['capture', 'ask', 'resolve', 'supersede']) {
+          const dest = resolve(skillsDir, skill);
+          const exists = existsSync(dest);
+          if (!exists || isForce) {
+            // Copy into a temp dir and swap in, so a failed copy never leaves the
+            // skill deleted with no replacement.
+            const tmpDest = `${dest}.tmp`;
+            await rm(tmpDest, { recursive: true, force: true });
+            await cp(resolve(PACKAGE_ROOT, 'skills', skill), tmpDest, { recursive: true });
+            if (exists) await rm(dest, { recursive: true, force: true });
+            await rename(tmpDest, dest);
+            console.log(`  Installed skill '${skill}'${isForce && exists ? ' (overwritten)' : ''}.`);
+          } else {
+            console.log(`  Skipped skill '${skill}' (already exists). Pass --force to overwrite.`);
           }
-        } catch (err) {
-          console.error(`  Error installing skills into ${skillsDir}: ${err.message}`);
-          hadError = true;
         }
+      } catch (err) {
+        console.error(`  Error installing skills into ${skillsDir}: ${err.message}`);
+        hadError = true;
       }
     }
-  } else {
-    console.log('Skipping agent skill install (experimental; pass --skills or --agent <name> to enable).');
   }
 
   if (hadError) {

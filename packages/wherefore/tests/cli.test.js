@@ -9,6 +9,8 @@ import { tmpdir } from 'node:os';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const BIN = resolve(__dirname, '..', 'bin', 'wherefore.js');
 
+const SKILLS = ['capture', 'ask', 'resolve', 'supersede'];
+
 function spawn(args, opts = {}) {
   return spawnSync(process.execPath, [BIN, ...args], {
     encoding: 'utf-8',
@@ -33,6 +35,11 @@ function withProject(label, fn) {
   }
 }
 
+// True iff every skill installed under `<cwd>/<root>/skills`.
+function hasSkills(cwd, root) {
+  return SKILLS.every((s) => existsSync(resolve(cwd, root, 'skills', s, 'SKILL.md')));
+}
+
 test('--help exits 0 and does not scaffold', () => {
   const cwd = uniqueTemp('help');
   mkdirSync(cwd, { recursive: true });
@@ -45,7 +52,7 @@ test('--help exits 0 and does not scaffold', () => {
   }
 });
 
-test('default init scaffolds the log + AGENTS.md floor but installs NO skills', () => {
+test('default init scaffolds the log + AGENTS.md floor AND installs skills (auto)', () => {
   withProject('default', (cwd) => {
     const result = spawn(['init'], { cwd });
     assert.equal(result.status, 0);
@@ -60,60 +67,109 @@ test('default init scaffolds the log + AGENTS.md floor but installs NO skills', 
     const pkg = JSON.parse(readFileSync(resolve(cwd, 'package.json'), 'utf8'));
     assert.ok(pkg.devDependencies['wherefore'], 'missing wherefore devDependency');
 
-    // No skills by default.
-    assert.ok(!existsSync(resolve(cwd, '.agents', 'skills')), 'must not install .agents/skills by default');
-    assert.ok(!existsSync(resolve(cwd, '.claude', 'skills')), 'must not install .claude/skills by default');
-    assert.ok(!existsSync(resolve(cwd, '.codex', 'skills')), 'must not install .codex/skills by default');
+    // No agent markers present, so auto falls back to the shared .agents/skills path.
+    assert.ok(hasSkills(cwd, '.agents'), 'default should install the shared .agents/skills');
+    assert.ok(!existsSync(resolve(cwd, '.claude', 'skills')), 'no .claude marker => no .claude/skills');
+    assert.ok(!existsSync(resolve(cwd, '.codex', 'skills')), 'no .codex marker => no .codex/skills');
   });
 });
 
-test('init --skills installs into the shared .agents/skills path', () => {
-  withProject('skills', (cwd) => {
-    const result = spawn(['init', '--skills'], { cwd });
+test('default init auto-detects a pre-existing agent marker (.claude)', () => {
+  withProject('auto-detect', (cwd) => {
+    mkdirSync(resolve(cwd, '.claude'), { recursive: true });
+    const result = spawn(['init'], { cwd });
     assert.equal(result.status, 0);
-    for (const skill of ['capture', 'ask', 'resolve', 'supersede']) {
-      assert.ok(
-        existsSync(resolve(cwd, '.agents', 'skills', skill, 'SKILL.md')),
-        `missing .agents/skills/${skill}/SKILL.md`
-      );
+    assert.ok(hasSkills(cwd, '.claude'), 'auto should install for the detected .claude marker');
+    assert.ok(!existsSync(resolve(cwd, '.agents', 'skills')), 'detected a marker => no shared fallback');
+    assert.ok(!existsSync(resolve(cwd, '.codex', 'skills')), 'should not install undetected codex');
+  });
+});
+
+// Regression: init writes CLAUDE.md as part of scaffolding. Auto-detection must run
+// against the PRE-scaffold state, so a codex-only project must NOT also get claude
+// skills just because init created a CLAUDE.md along the way.
+test('default init auto does not self-detect the CLAUDE.md it writes', () => {
+  withProject('auto-regression', (cwd) => {
+    mkdirSync(resolve(cwd, '.codex'), { recursive: true });
+    const result = spawn(['init'], { cwd });
+    assert.equal(result.status, 0);
+    assert.ok(existsSync(resolve(cwd, 'CLAUDE.md')), 'init should still write CLAUDE.md');
+    assert.ok(hasSkills(cwd, '.codex'), 'auto should install for the detected .codex marker');
+    assert.ok(!existsSync(resolve(cwd, '.claude', 'skills')), 'must NOT install claude from its own CLAUDE.md');
+    assert.ok(!existsSync(resolve(cwd, '.agents', 'skills')), 'detected codex => no shared fallback');
+  });
+});
+
+test('init --no-skills scaffolds the floor but installs no skills anywhere', () => {
+  withProject('no-skills', (cwd) => {
+    const result = spawn(['init', '--no-skills'], { cwd });
+    assert.equal(result.status, 0);
+
+    // Floor is still scaffolded.
+    assert.ok(existsSync(resolve(cwd, 'wherefore', 'topics.md')), 'missing topics.md');
+    assert.ok(existsSync(resolve(cwd, 'AGENTS.md')), 'missing AGENTS.md');
+    assert.ok(existsSync(resolve(cwd, 'CLAUDE.md')), 'missing CLAUDE.md');
+
+    // But no skills, in any root.
+    for (const root of ['.agents', '.claude', '.codex']) {
+      assert.ok(!existsSync(resolve(cwd, root, 'skills')), `--no-skills must not install ${root}/skills`);
     }
-    assert.ok(!existsSync(resolve(cwd, '.claude', 'skills')), 'should not touch .claude/skills');
   });
 });
 
-test('init --skills --agent claude,codex writes only those targets', () => {
-  withProject('named', (cwd) => {
-    const result = spawn(['init', '--skills', '--agent', 'claude,codex'], { cwd });
+test('init --no-skills wins even if a marker is present', () => {
+  withProject('no-skills-marker', (cwd) => {
+    mkdirSync(resolve(cwd, '.claude'), { recursive: true });
+    const result = spawn(['init', '--no-skills'], { cwd });
     assert.equal(result.status, 0);
-    assert.ok(existsSync(resolve(cwd, '.claude', 'skills', 'capture', 'SKILL.md')), 'missing claude skill');
-    assert.ok(existsSync(resolve(cwd, '.codex', 'skills', 'capture', 'SKILL.md')), 'missing codex skill');
+    assert.ok(!existsSync(resolve(cwd, '.claude', 'skills')), '--no-skills must override auto-detection');
+  });
+});
+
+test('init --agent claude overrides auto and installs only claude', () => {
+  withProject('agent-one', (cwd) => {
+    const result = spawn(['init', '--agent', 'claude'], { cwd });
+    assert.equal(result.status, 0);
+    assert.ok(hasSkills(cwd, '.claude'), 'missing claude skills');
+    assert.ok(!existsSync(resolve(cwd, '.agents', 'skills')), 'named agent => no shared fallback');
+    assert.ok(!existsSync(resolve(cwd, '.codex', 'skills')), 'should not install unrequested codex');
+  });
+});
+
+test('init --agent claude,codex writes only those targets', () => {
+  withProject('named', (cwd) => {
+    const result = spawn(['init', '--agent', 'claude,codex'], { cwd });
+    assert.equal(result.status, 0);
+    assert.ok(hasSkills(cwd, '.claude'), 'missing claude skills');
+    assert.ok(hasSkills(cwd, '.codex'), 'missing codex skills');
     assert.ok(!existsSync(resolve(cwd, '.agents', 'skills')), 'should not write .agents/skills for named agents');
   });
 });
 
-test('init --skills --agent all writes all three roots', () => {
+test('init --agent all writes all three roots', () => {
   withProject('all', (cwd) => {
-    const result = spawn(['init', '--skills', '--agent', 'all'], { cwd });
+    const result = spawn(['init', '--agent', 'all'], { cwd });
     assert.equal(result.status, 0);
-    assert.ok(existsSync(resolve(cwd, '.claude', 'skills', 'ask', 'SKILL.md')), 'missing claude');
-    assert.ok(existsSync(resolve(cwd, '.codex', 'skills', 'ask', 'SKILL.md')), 'missing codex');
-    assert.ok(existsSync(resolve(cwd, '.agents', 'skills', 'ask', 'SKILL.md')), 'missing agents');
+    assert.ok(hasSkills(cwd, '.claude'), 'missing claude');
+    assert.ok(hasSkills(cwd, '.codex'), 'missing codex');
+    assert.ok(hasSkills(cwd, '.agents'), 'missing agents');
   });
 });
 
-test('init --skills --agent auto installs for detected markers only', () => {
-  withProject('auto', (cwd) => {
+test('init --agent auto installs for detected markers only', () => {
+  withProject('auto-explicit', (cwd) => {
     mkdirSync(resolve(cwd, '.codex'), { recursive: true });
-    const result = spawn(['init', '--skills', '--agent', 'auto'], { cwd });
+    const result = spawn(['init', '--agent', 'auto'], { cwd });
     assert.equal(result.status, 0);
-    assert.ok(existsSync(resolve(cwd, '.codex', 'skills', 'capture', 'SKILL.md')), 'auto should install codex');
+    assert.ok(hasSkills(cwd, '.codex'), 'auto should install codex');
+    assert.ok(!existsSync(resolve(cwd, '.claude', 'skills')), 'auto should not install undetected claude');
     assert.ok(!existsSync(resolve(cwd, '.cursor', 'skills')), 'auto should not install undetected cursor');
   });
 });
 
 test('init --agent bogus exits non-zero', () => {
   withProject('bogus', (cwd) => {
-    const result = spawn(['init', '--skills', '--agent', 'bogus'], { cwd });
+    const result = spawn(['init', '--agent', 'bogus'], { cwd });
     assert.notEqual(result.status, 0);
   });
 });
@@ -123,11 +179,11 @@ test('init --agent claude skips existing skill, --force overwrites', () => {
     mkdirSync(resolve(cwd, '.claude', 'skills', 'capture'), { recursive: true });
     writeFileSync(resolve(cwd, '.claude', 'skills', 'capture', 'SKILL.md'), 'custom-capture', 'utf8');
 
-    const r1 = spawn(['init', '--skills', '--agent', 'claude'], { cwd });
+    const r1 = spawn(['init', '--agent', 'claude'], { cwd });
     assert.equal(r1.status, 0);
     assert.equal(readFileSync(resolve(cwd, '.claude', 'skills', 'capture', 'SKILL.md'), 'utf8'), 'custom-capture');
 
-    const r2 = spawn(['init', '--skills', '--agent', 'claude', '--force'], { cwd });
+    const r2 = spawn(['init', '--agent', 'claude', '--force'], { cwd });
     assert.equal(r2.status, 0);
     assert.notEqual(readFileSync(resolve(cwd, '.claude', 'skills', 'capture', 'SKILL.md'), 'utf8'), 'custom-capture');
   });
@@ -140,6 +196,7 @@ test('init --global --agent claude installs into ~/.claude/skills (temp HOME)', 
     const result = spawn(['init', '--global', '--agent', 'claude'], { cwd, env: { HOME: home } });
     assert.equal(result.status, 0);
     assert.ok(existsSync(resolve(home, '.claude', 'skills', 'capture', 'SKILL.md')), 'missing global claude skill');
+    assert.ok(!existsSync(resolve(cwd, '.claude', 'skills')), 'global install must not write into the project');
   });
   rmSync(home, { recursive: true, force: true });
 });

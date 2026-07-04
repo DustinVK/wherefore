@@ -167,23 +167,26 @@ coding agent can read and maintain the log, and a `CLAUDE.md` snippet that makes
 offer to capture decisions. It also adds a `dist/` line to `.gitignore` and a `wherefore`
 devDependency.
 
-By default it installs no agent skills. To also install the SKILL.md skills for your
-agent(s), opt in (experimental):
+By default it also installs the SKILL.md skills for your agent, auto-detecting which
+agent(s) the repo uses and falling back to the shared `.agents/skills` path (Copilot,
+Cursor, Gemini, Antigravity) when it can't tell:
 
 ```bash
-# the shared .agents/skills path (Copilot, Cursor, Gemini, Antigravity)
-npx wherefore init --skills
+# default: auto-detect the agent(s) and install their skills
+npx wherefore init
 
-# specific agents: claude, codex, copilot, cursor, gemini, antigravity, all, auto
-npx wherefore init --skills --agent claude,codex
+# target specific agents: claude, codex, copilot, cursor, gemini, antigravity, all, auto
+npx wherefore init --agent claude,codex
 
-# detect agents from the repo, or install into your user-level dirs
-npx wherefore init --skills --agent auto
-npx wherefore init --skills --agent claude --global
+# install into your user-level dirs instead of the project
+npx wherefore init --agent claude --global
+
+# scaffold the log + AGENTS.md floor only, no agent skills
+npx wherefore init --no-skills
 ```
 
-`AGENTS.md` is always written and is the cross-tool floor; installing skills is an opt-in
-enhancement on top of it.
+`AGENTS.md` is always written and is the cross-tool floor; the installed skills are an
+enhancement on top of it that you can skip with `--no-skills`.
 
 ## Setup tips
 

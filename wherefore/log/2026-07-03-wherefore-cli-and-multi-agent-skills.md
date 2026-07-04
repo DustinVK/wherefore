@@ -4,11 +4,13 @@ title: "Lean wherefore CLI with opt-in agent skills"
 areas: [repo-structure, dashboard]
 topics: [distribution, cross-tool, publishing, naming]
 stories: []
-status: active
+status: superseded
 supersedes:
-superseded_by:
-superseded_date:
+superseded_by: 2026-07-04-init-skills-on-by-default
+superseded_date: 2026-07-04
 ---
+
+SUPERSEDED 2026-07-04 -> see 2026-07-04-init-skills-on-by-default. Kept for history, not current.
 
 ## Summary
 The init capability first landed inside the astro-based `@dustinvk/wherefore-dashboard`

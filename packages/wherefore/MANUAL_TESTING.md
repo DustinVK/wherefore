@@ -1,8 +1,9 @@
 # Manual testing plan: `wherefore` CLI
 
-`npm test` in this package already covers the mechanics: default-off skills, the
-per-agent / `all` / `auto` / unknown / global / force paths, the dashboard launcher
-(arg forwarding + exit code), and the CLAUDE.md / .gitignore / package.json regressions.
+`npm test` in this package already covers the mechanics: default-on skills via
+auto-detect (including the `--no-skills` opt-out and the auto-doesn't-self-detect-CLAUDE.md
+regression), the per-agent / `all` / `auto` / unknown / global / force paths, the dashboard
+launcher (arg forwarding + exit code), and the CLAUDE.md / .gitignore / package.json regressions.
 
 This document covers what those tests cannot: running the packaged artifact the way a
 user would, and confirming that a real agent actually discovers the installed skills.
@@ -32,10 +33,11 @@ Below, `wherefore` means whichever invocation you chose.
 | `wherefore` / `wherefore --help` | Prints usage, exit 0 |
 | `wherefore bogus` | `Unknown command: bogus`, exit 1 |
 
-## B. Default init installs no skills
+## B. Default init installs skills (auto-detect)
 
-In an empty dir containing a minimal `package.json`, run `wherefore init`. Expect exit 0
-and the console line `Skipping agent skill install (experimental; ...)`. Verify:
+Skills install is **on by default** and picks targets by auto-detecting the project's
+agent markers. In an empty dir containing a minimal `package.json` (no agent markers), run
+`wherefore init`. Expect exit 0. Verify:
 
 - `wherefore/` has `log/`, `questions/`, `plan/`, and `topics.md`.
 - `AGENTS.md` exists (the always-on cross-tool floor).
@@ -43,26 +45,36 @@ and the console line `Skipping agent skill install (experimental; ...)`. Verify:
   `Paste the block below`.
 - `package.json` gained a `wherefore` devDependency.
 - `.gitignore` contains a bare `dist/` line.
-- **No** `.agents/skills`, `.claude/skills`, or `.codex/skills` directories exist.
+- Auto found no markers, so it fell back to the shared path:
+  `.agents/skills/{capture,ask,resolve,supersede}/SKILL.md` exist.
+- **No** `.claude/skills` or `.codex/skills` (nothing detected them).
+
+Then the detection cases (each in a fresh dir):
+
+- `mkdir .claude && wherefore init` -> installs `.claude/skills` only; `.agents/skills` absent.
+- `mkdir .codex && wherefore init` -> installs `.codex/skills` only. Critically, `.claude/skills`
+  is **absent** even though `init` writes a `CLAUDE.md` along the way: auto detection is
+  snapshotted before scaffolding, so it never self-detects init's own `CLAUDE.md`.
 
 ## C. Idempotency
 
 Run `wherefore init` a second time in the same dir. Expect exit 0, "already exists"
-messages for topics/AGENTS/CLAUDE, and that `CLAUDE.md` still has exactly one `## Wherefore`
-block (no duplicate append). Confirm `package.json` was not rewritten (dependency not added
-twice, formatting unchanged).
+messages for topics/AGENTS/CLAUDE, `Skipped skill '...' (already exists)` for each skill,
+and that `CLAUDE.md` still has exactly one `## Wherefore` block (no duplicate append).
+Confirm `package.json` was not rewritten (dependency not added twice, formatting unchanged).
 
-## D. Opt-in skill install
+## D. Targeting specific agents and opting out
 
 Each in a fresh dir:
 
 | Command | Expected |
 | --- | --- |
-| `wherefore init --skills` | `.agents/skills/{capture,ask,resolve,supersede}/SKILL.md`; no `.claude`/`.codex` |
-| `wherefore init --skills --agent claude,codex` | `.claude/skills` and `.codex/skills` written; `.agents/skills` absent |
-| `wherefore init --skills --agent all` | all three roots written |
-| `mkdir .codex && wherefore init --skills --agent auto` | only `.codex/skills` written; `.cursor/skills` absent |
-| `wherefore init --skills --agent bogus` | exit 1, error lists valid agent names |
+| `wherefore init --no-skills` | floor scaffolded (wherefore/, AGENTS.md, CLAUDE.md); **no** `.agents`/`.claude`/`.codex` skills; console line `Skipping agent skill install (--no-skills).` |
+| `wherefore init --agent claude` | `.claude/skills` only; no `.agents`/`.codex` |
+| `wherefore init --agent claude,codex` | `.claude/skills` and `.codex/skills`; `.agents/skills` absent |
+| `wherefore init --agent all` | all three roots written |
+| `mkdir .codex && wherefore init --agent auto` | only `.codex/skills`; `.claude/skills` and `.cursor/skills` absent |
+| `wherefore init --agent bogus` | exit 1, error lists valid agent names |
 | re-run `--agent claude` then again with `--force` | first re-run skips existing skill; `--force` overwrites it |
 | `HOME=$(mktemp -d) wherefore init --global --agent claude` | skill lands under that temp `HOME`'s `.claude/skills`, not the project |
 
@@ -88,7 +100,7 @@ Each in a fresh dir:
 For each agent you actually have installed, install its skills and confirm the agent
 discovers them. This is the part unit tests can't reach.
 
-- **Claude Code:** `wherefore init --skills --agent claude`, then in Claude Code confirm the
+- **Claude Code:** `wherefore init --agent claude`, then in Claude Code confirm the
   four skills are discovered from `.claude/skills/`. Known limitation to eyeball: their
   descriptions advertise `/wherefore:*` triggers, which only resolve for the marketplace
   plugin, not for filesystem-installed skills.
