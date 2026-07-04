@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 import { build, dev } from 'astro';
-import { cp, rm, readFile, writeFile, mkdir, rename } from 'node:fs/promises';
+import { cp, rm } from 'node:fs/promises';
 import { existsSync, statSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { tmpdir, homedir } from 'node:os';
+import { tmpdir } from 'node:os';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = resolve(__dirname, '..');
@@ -27,15 +27,14 @@ const USAGE = `wherefore-dashboard -- build or preview a static dashboard from a
 Usage:
   wherefore-dashboard build [--src <path>] [--out <path>] [--title <string>]
   wherefore-dashboard dev   [--src <path>] [--title <string>]
-  wherefore-dashboard init  [--global] [--force]
 
 Options:
   --src <path>     Path to the wherefore/ directory to render. Default: ./wherefore
   --out <path>     Output directory for the built site. Default: ./dist
   --title <string> Override the dashboard title.
-  --global         Install Antigravity skills globally instead of in the project root.
-  --force, -f      Overwrite existing skills and configuration files.
-  -h, --help       Show this help.`;
+  -h, --help       Show this help.
+
+To scaffold a wherefore/ log or install skills, use the wherefore CLI: npx wherefore init.`;
 
 function checkSrc(src) {
   const logDir = resolve(src, 'log');
@@ -60,19 +59,6 @@ function parseArgs(argv) {
     }
   }
   return { command, flags };
-}
-
-// The CLAUDE.snippet.md template wraps the pasteable convention block in marker
-// comments and precedes it with human-facing paste instructions. Install only the
-// block between the markers so those instructions do not leak into CLAUDE.md.
-function extractSnippetBlock(content) {
-  const start = content.indexOf('paste from here');
-  const end = content.indexOf('to here', start + 1);
-  if (start === -1 || end === -1) return content.trim();
-  const afterStart = content.indexOf('-->', start);
-  const beforeEnd = content.lastIndexOf('<!--', end);
-  if (afterStart === -1 || beforeEnd === -1 || afterStart >= beforeEnd) return content.trim();
-  return content.slice(afterStart + 3, beforeEnd).trim();
 }
 
 const { command, flags } = parseArgs(process.argv);
@@ -128,168 +114,11 @@ if (command === 'build') {
   });
 
 } else if (command === 'init') {
-  const isGlobal = rawArgs.includes('--global');
-  const isForce = rawArgs.includes('--force') || rawArgs.includes('-f');
-  const targetRoot = process.cwd();
-  // Track whether any step actually errored (not just "already exists / skipped")
-  // so init can do as much setup as possible and still exit non-zero at the end.
-  let hadError = false;
-
-  // 1. Read dashboard version from package.json
-  let dashboardVersion = 'latest';
-  try {
-    const pkgJson = JSON.parse(await readFile(resolve(PACKAGE_ROOT, 'package.json'), 'utf8'));
-    dashboardVersion = `^${pkgJson.version}`;
-  } catch (_) {}
-
-  console.log('Initializing wherefore log structure...');
-
-  // 2. Create wherefore/ directories and seed topics.md if not exists
-  const whereforeDir = resolve(targetRoot, 'wherefore');
-  const logDir = resolve(whereforeDir, 'log');
-  const questionsDir = resolve(whereforeDir, 'questions');
-  const planDir = resolve(whereforeDir, 'plan');
-
-  await mkdir(logDir, { recursive: true });
-  await mkdir(questionsDir, { recursive: true });
-  await mkdir(planDir, { recursive: true });
-
-  const topicsPath = resolve(whereforeDir, 'topics.md');
-  if (!existsSync(topicsPath)) {
-    const seedTopicsPath = resolve(PACKAGE_ROOT, 'skills', 'capture', 'topics.seed.md');
-    try {
-      await cp(seedTopicsPath, topicsPath);
-      console.log('  Created wherefore/topics.md from seed template.');
-    } catch (err) {
-      console.warn(`  Warning: Could not seed topics.md: ${err.message}`);
-      hadError = true;
-    }
-  } else {
-    console.log('  wherefore/topics.md already exists, skipping seed.');
-  }
-
-  // 3. Scaffold package.json
-  const targetPkgJsonPath = resolve(targetRoot, 'package.json');
-  if (existsSync(targetPkgJsonPath)) {
-    try {
-      const pkgContent = await readFile(targetPkgJsonPath, 'utf8');
-      const pkg = JSON.parse(pkgContent);
-      if (!pkg.devDependencies) pkg.devDependencies = {};
-      if (!pkg.dependencies) pkg.dependencies = {};
-      
-      const hasDep = pkg.devDependencies['@dustinvk/wherefore-dashboard'] || pkg.dependencies['@dustinvk/wherefore-dashboard'];
-      if (!hasDep) {
-        pkg.devDependencies['@dustinvk/wherefore-dashboard'] = dashboardVersion;
-        // Preserve the file's existing indentation and trailing newline so init
-        // adds one line rather than reformatting the whole file into a noisy diff.
-        const indentMatch = pkgContent.match(/\n([ \t]+)"/);
-        const indent = indentMatch ? indentMatch[1] : 2;
-        const trailingNewline = pkgContent.endsWith('\n') ? '\n' : '';
-        await writeFile(targetPkgJsonPath, JSON.stringify(pkg, null, indent) + trailingNewline, 'utf8');
-        console.log('  Added @dustinvk/wherefore-dashboard to devDependencies in package.json.');
-      } else {
-        console.log('  @dustinvk/wherefore-dashboard already in package.json.');
-      }
-    } catch (err) {
-      console.warn(`  Warning: Could not update package.json: ${err.message}`);
-      hadError = true;
-    }
-  }
-
-  // 4. Update .gitignore
-  const gitignorePath = resolve(targetRoot, '.gitignore');
-  let gitignoreContent = '';
-  if (existsSync(gitignorePath)) {
-    gitignoreContent = await readFile(gitignorePath, 'utf8');
-  }
-  const existingIgnores = new Set(gitignoreContent.split('\n').map((line) => line.trim()));
-  const linesToAppend = [];
-  // Match whole lines: a nested `frontend/dist/` must not mask a missing top-level
-  // `dist/` rule (the default build output the consumer actually produces).
-  if (!existingIgnores.has('dist/')) linesToAppend.push('dist/');
-
-  if (linesToAppend.length > 0) {
-    const divider = gitignoreContent.length === 0 || gitignoreContent.endsWith('\n') ? '' : '\n';
-    await writeFile(gitignorePath, gitignoreContent + divider + linesToAppend.join('\n') + '\n', 'utf8');
-    console.log('  Updated .gitignore to ignore dashboard build output.');
-  }
-
-  // 5. Install AGENTS.md
-  const agentsPath = resolve(targetRoot, 'AGENTS.md');
-  const templateAgentsPath = resolve(PACKAGE_ROOT, 'templates', 'AGENTS.md');
-  const agentsExists = existsSync(agentsPath);
-  if (!agentsExists || isForce) {
-    try {
-      await cp(templateAgentsPath, agentsPath);
-      console.log(`  Created AGENTS.md in project root${isForce && agentsExists ? ' (overwritten)' : ''}.`);
-    } catch (err) {
-      console.warn(`  Warning: Could not create AGENTS.md: ${err.message}`);
-      hadError = true;
-    }
-  } else {
-    console.log('  AGENTS.md already exists, skipping. Pass --force to overwrite.');
-  }
-
-  // 6. Install CLAUDE.md setup snippet
-  const claudePath = resolve(targetRoot, 'CLAUDE.md');
-  const templateSnippetPath = resolve(PACKAGE_ROOT, 'templates', 'CLAUDE.snippet.md');
-  try {
-    const snippetContent = extractSnippetBlock(await readFile(templateSnippetPath, 'utf8'));
-    let existingClaude = '';
-    if (existsSync(claudePath)) {
-      existingClaude = await readFile(claudePath, 'utf8');
-    }
-
-    if (!existingClaude.includes('## Wherefore')) {
-      const divider = existingClaude.length === 0 || existingClaude.endsWith('\n') ? '' : '\n';
-      await writeFile(claudePath, existingClaude + divider + snippetContent + '\n', 'utf8');
-      console.log('  Appended wherefore snippet to CLAUDE.md.');
-    } else {
-      console.log('  CLAUDE.md already configured for wherefore plugin, skipping.');
-    }
-  } catch (err) {
-    console.warn(`  Warning: Could not configure CLAUDE.md: ${err.message}`);
-    hadError = true;
-  }
-
-  // 7. Install Antigravity Skills (globally or in the project, same logic either way)
-  const scope = isGlobal ? 'global' : 'local';
-  const skillsDir = isGlobal
-    ? resolve(homedir(), '.gemini', 'antigravity-cli', 'skills')
-    : resolve(targetRoot, '.agents', 'skills');
-  console.log(`Installing skills ${isGlobal ? 'globally' : 'locally'} for Antigravity in ${skillsDir}...`);
-  try {
-    await mkdir(skillsDir, { recursive: true });
-    for (const skill of ['capture', 'ask', 'resolve', 'supersede']) {
-      const dest = resolve(skillsDir, skill);
-      const exists = existsSync(dest);
-      if (!exists || isForce) {
-        // Copy into a temp dir and swap in, so a failed copy never leaves the
-        // skill deleted with no replacement.
-        const tmpDest = `${dest}.tmp`;
-        await rm(tmpDest, { recursive: true, force: true });
-        await cp(resolve(PACKAGE_ROOT, 'skills', skill), tmpDest, { recursive: true });
-        if (exists) await rm(dest, { recursive: true, force: true });
-        await rename(tmpDest, dest);
-        console.log(`  Installed ${scope} skill '${skill}'${isForce && exists ? ' (overwritten)' : ''}.`);
-      } else {
-        console.log(`  Skipped ${scope} skill '${skill}' (already exists). Pass --force to overwrite.`);
-      }
-    }
-  } catch (err) {
-    console.error(`  Error installing ${scope} skills: ${err.message}`);
-    hadError = true;
-  }
-
-  if (hadError) {
-    console.error('\nInitialization completed with errors (see warnings above).');
-    process.exit(1);
-  }
-
-  console.log('\nInitialization complete! All set up.');
+  console.error('init moved to the wherefore CLI. Run: npx wherefore init');
+  process.exit(1);
 
 } else {
   console.error(`Unknown command: ${command ?? '(none)'}`);
-  console.error('Usage: wherefore-dashboard <build|dev|init> [--src <path>] [--out <path>] [--title <string>]');
+  console.error('Usage: wherefore-dashboard <build|dev> [--src <path>] [--out <path>] [--title <string>]');
   process.exit(1);
 }
