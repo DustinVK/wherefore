@@ -1,7 +1,7 @@
 ---
 date: 2026-01-01
 title: Active example decision
-areas: [checkout]
+areas: [checkout, catalog]
 topics: [api-design]
 stories: [PROJ-101]
 status: active
@@ -20,7 +20,9 @@ An example active entry. Nothing here was reversed.
 
 ## Why
 
-Option A was simpler and had no known downsides at the time.
+Option A was **simpler**: it needed only the `computeRate()` helper, kept latency < 50ms, and had
+no known downsides at the time. See the [replacement](/log/2026-01-03-replacement-example) for
+later context.
 
 ## Alternatives considered
 

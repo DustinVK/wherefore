@@ -5,11 +5,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const FIXTURE = resolve(__dirname, 'fixtures/wherefore');
+import { resolve } from 'node:path';
+import { FIXTURES as FIXTURE } from './helpers.mjs';
 
 function frontmatterKeys(content) {
   const match = content.match(/^---\n([\s\S]*?)\n---/);
@@ -85,7 +82,7 @@ test('fixture counts match expected', () => {
   const qFiles = readdirSync(resolve(FIXTURE, 'questions')).filter(f => f.endsWith('.md'));
 
   assert.equal(logFiles.length, 4, `Expected 4 log entries`);
-  assert.equal(qFiles.length, 2, `Expected 2 questions`);
+  assert.equal(qFiles.length, 3, `Expected 3 questions`);
 
   const statuses = logFiles.map(f => {
     const content = readFileSync(resolve(FIXTURE, 'log', f), 'utf-8');
