@@ -43,11 +43,15 @@ wherefore is an open, plain-markdown record of the reasoning behind your technic
 decisions. No cloud, no database, no vector store, no lock-in. Because the data is
 just files in your repo, any tool or any person can read it.
 
-There are three ways to work with it:
+There are a few ways to work with it:
 
 - **A Claude Code plugin** (the richest experience): skills that capture, query,
   resolve, and supersede decisions, with Claude handling the tagging and bookkeeping
   so the log actually gets maintained.
+- **The `wherefore` CLI** ([`wherefore`](https://www.npmjs.com/package/wherefore) on
+  npm): `npx wherefore init` scaffolds the log and an `AGENTS.md`, and
+  `npx wherefore dashboard` launches the dashboard. It can also install the skills for
+  your agent (Claude Code, Codex, Cursor, Copilot, Gemini, Antigravity) as an opt-in.
 - **A static dashboard** ([`@dustinvk/wherefore-dashboard`](https://www.npmjs.com/package/@dustinvk/wherefore-dashboard)
   on npm): renders your `wherefore/` directory as a browsable site, deployable to
   Cloudflare Pages.
@@ -155,6 +159,32 @@ Or equivalently from the repo root:
 node packages/wherefore-dashboard/bin/wherefore-dashboard.js dev --src ./wherefore
 ```
 
+## Setting up a project
+
+`npx wherefore init` scaffolds everything a project needs: a `wherefore/` directory
+(`log/`, `questions/`, `plan/`, and a starter `topics.md`), an `AGENTS.md` so any
+coding agent can read and maintain the log, and a `CLAUDE.md` snippet that makes Claude
+offer to capture decisions. It also adds a `dist/` line to `.gitignore` and a `wherefore`
+devDependency.
+
+By default it installs no agent skills. To also install the SKILL.md skills for your
+agent(s), opt in (experimental):
+
+```bash
+# the shared .agents/skills path (Copilot, Cursor, Gemini, Antigravity)
+npx wherefore init --skills
+
+# specific agents: claude, codex, copilot, cursor, gemini, antigravity, all, auto
+npx wherefore init --skills --agent claude,codex
+
+# detect agents from the repo, or install into your user-level dirs
+npx wherefore init --skills --agent auto
+npx wherefore init --skills --agent claude --global
+```
+
+`AGENTS.md` is always written and is the cross-tool floor; installing skills is an opt-in
+enhancement on top of it.
+
 ## Setup tips
 
 First-time setup in a project (optional but recommended):
@@ -212,6 +242,7 @@ wherefore/
 │   └── workflows/
 │       └── validate-plugins.yml       # CI: validates manifests + plugin on every push
 ├── packages/
+│   ├── wherefore/                     # the `wherefore` CLI: init + dashboard launcher (published to npm)
 │   └── wherefore-dashboard/           # the static dashboard (published to npm)
 ├── plugins/
 │   └── wherefore/

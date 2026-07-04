@@ -13,6 +13,10 @@ Wherefore captures the reasoning behind your engineering decisions, what you cho
 [![npm](https://img.shields.io/npm/v/@dustinvk/wherefore-dashboard)](https://www.npmjs.com/package/@dustinvk/wherefore-dashboard)
 [![license](https://img.shields.io/npm/l/@dustinvk/wherefore-dashboard)](https://github.com/DustinVK/wherefore/blob/main/LICENSE)
 
+> This package only builds and serves the dashboard. To scaffold a `wherefore/` log or
+> install skills for your agent, use the `wherefore` CLI: `npx wherefore init`. You can
+> also launch this dashboard through it with `npx wherefore dashboard`.
+
 ## Quick start
 
 From any directory that contains a `wherefore/` folder, no install and no flags:
