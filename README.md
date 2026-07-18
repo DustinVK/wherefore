@@ -61,9 +61,9 @@ There are a few ways to work with it:
 Feed the plugin a discussion (raw notes, a transcript, an AI-generated summary, a
 Slack thread) and it outputs compact entries capturing what was decided, why, and
 what was rejected. Unresolved questions each get their own file in
-`wherefore/questions/` so nothing falls through the cracks. There is no index to
-keep in sync: the frontmatter in each entry is the single source of truth, and an
-agent shortlists straight from it to answer "why did we build it this way?" directly
+`wherefore/questions/` so nothing falls through the cracks. The frontmatter in
+each entry is the single source of truth, and an agent shortlists straight from
+it to answer "why did we build it this way?" directly
 from the repo without touching a wiki.
 
 If you've used ADRs, this is the same instinct, with the capture, querying, question
@@ -205,8 +205,7 @@ becomes manual and the vocabulary grows organically as you go.
 
 On first use in a project, `capture` scaffolds a `wherefore/` folder (a starter
 `topics.md`, a `README.md`, a `log/` subdirectory, and a `questions/` subdirectory)
-in that repo. There is no generated index to keep in sync. The plugin ships the
-tooling; the log itself is per-project data. Restart Claude Code once after
+in that repo. The plugin ships the tooling; the log itself is per-project data. Restart Claude Code once after
 installing so the new skills are picked up.
 
 ## How a session flows
@@ -279,8 +278,8 @@ Each consuming project's log lives in its own repo, not here:
         └── YYYY-MM-DD-short-slug.md   # one file per independently-queryable thread
 ```
 
-No `INDEX.md` or `QUESTIONS.md`: entry and question frontmatter is the single
-source of truth, and the skills derive what they need at read time.
+Entry and question frontmatter is the single source of truth, and the skills
+derive what they need at read time.
 
 ## Publishing the plugin yourself
 

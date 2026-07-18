@@ -12,8 +12,8 @@ description: >
 
 Close out an open question by updating its individual file in
 `wherefore/questions/`, recording what was decided, why, and which discussion (if
-any) contains the full context. There is no question index to maintain; the file's
-frontmatter is the single source of truth.
+any) contains the full context. The file's frontmatter is the single source of
+truth.
 
 ## Frontmatter safety
 

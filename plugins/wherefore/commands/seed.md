@@ -58,8 +58,7 @@ approval; wait for their reply before writing anything.
 
 - If `wherefore/topics.md` does NOT exist: create the `wherefore/` directory and
   write the confirmed vocabulary as `wherefore/topics.md` in the two-section format
-  above. Do not create any index file; the `capture` skill scaffolds the rest of
-  the directory on first use.
+  above. The `capture` skill scaffolds the rest of the directory on first use.
 - If it DOES exist: treat the existing file as the source of truth and MERGE:
   append only the new, confirmed tags under the correct section, and never remove
   or rename anything already there. Report exactly which tags you added.

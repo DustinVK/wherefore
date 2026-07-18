@@ -14,8 +14,8 @@ description: >
 Retire an existing wherefore entry by marking it `superseded` (with a pointer to its
 replacement) or `obsolete` (context gone, no replacement). Updates the entry
 file and adds a visible banner, so neither the `ask` skill nor a human skimming
-raw files is left guessing. There is no index to update; the entry's frontmatter is
-the single source of truth.
+raw files is left guessing. The entry's frontmatter is the single source of
+truth.
 
 ## Workflow
 

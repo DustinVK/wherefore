@@ -32,7 +32,7 @@ wherefore/
     └── YYYY-MM-DD-short-slug.md  # one file per discussion
 ```
 
-There is no index file to read. The frontmatter of the entry and question files
+The frontmatter of the entry and question files
 is the single source of truth; you derive what you need at read time. If
 `wherefore/` or `wherefore/log/` does not exist, or `log/` holds no `*.md`
 entries, tell the user the wherefore is empty or not set up yet; do not
