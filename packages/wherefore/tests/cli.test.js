@@ -234,16 +234,45 @@ test('init --agent claude skips existing skill, --force overwrites', () => {
   });
 });
 
+test('init preserves a custom AGENTS.md; --force refreshes only a managed one', () => {
+  withProject('agents-md', (cwd) => {
+    const agentsPath = resolve(cwd, 'AGENTS.md');
+    const custom = 'CUSTOM TEAM GUIDANCE\n';
+    writeFileSync(agentsPath, custom, 'utf8');
+
+    // Plain init must not touch an existing AGENTS.md.
+    const r1 = spawn(['init', '--no-skills'], { cwd });
+    assert.equal(r1.status, 0);
+    assert.equal(readFileSync(agentsPath, 'utf8'), custom, 'plain init must preserve AGENTS.md');
+
+    // --force must NOT clobber a foreign AGENTS.md: refreshing skills can't destroy custom content.
+    const r2 = spawn(['init', '--no-skills', '--force'], { cwd });
+    assert.equal(r2.status, 0);
+    assert.equal(readFileSync(agentsPath, 'utf8'), custom, '--force must not overwrite a custom AGENTS.md');
+
+    // Once it is our managed floor, --force refreshes it (drops a local edit).
+    rmSync(agentsPath);
+    assert.equal(spawn(['init', '--no-skills'], { cwd }).status, 0);
+    assert.ok(readFileSync(agentsPath, 'utf8').includes('wherefore: agent instructions'), 'managed floor written');
+    writeFileSync(agentsPath, readFileSync(agentsPath, 'utf8') + '\nLOCAL EDIT\n', 'utf8');
+    assert.equal(spawn(['init', '--no-skills', '--force'], { cwd }).status, 0);
+    assert.ok(!readFileSync(agentsPath, 'utf8').includes('LOCAL EDIT'), '--force should refresh a managed AGENTS.md');
+  });
+});
+
 test('init --global --agent claude installs into ~/.claude/skills (temp HOME)', () => {
   const home = uniqueTemp('home');
   mkdirSync(home, { recursive: true });
-  withProject('global', (cwd) => {
-    const result = spawn(['init', '--global', '--agent', 'claude'], { cwd, env: { HOME: home } });
-    assert.equal(result.status, 0);
-    assert.ok(existsSync(resolve(home, '.claude', 'skills', 'capture', 'SKILL.md')), 'missing global claude skill');
-    assert.ok(!existsSync(resolve(cwd, '.claude', 'skills')), 'global install must not write into the project');
-  });
-  rmSync(home, { recursive: true, force: true });
+  try {
+    withProject('global', (cwd) => {
+      const result = spawn(['init', '--global', '--agent', 'claude'], { cwd, env: { HOME: home } });
+      assert.equal(result.status, 0);
+      assert.ok(existsSync(resolve(home, '.claude', 'skills', 'capture', 'SKILL.md')), 'missing global claude skill');
+      assert.ok(!existsSync(resolve(cwd, '.claude', 'skills')), 'global install must not write into the project');
+    });
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
 });
 
 test('CLAUDE.md gets only the marked block, not the paste instructions', () => {
