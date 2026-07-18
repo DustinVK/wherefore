@@ -136,6 +136,17 @@ test('init --agent claude overrides auto and installs only claude', () => {
   });
 });
 
+test('init does not leak topics.seed.md into installed skill dirs', () => {
+  withProject('seed-leak', (cwd) => {
+    const result = spawn(['init', '--agent', 'claude'], { cwd });
+    assert.equal(result.status, 0);
+    assert.ok(existsSync(resolve(cwd, '.claude', 'skills', 'capture', 'SKILL.md')), 'capture SKILL.md should install');
+    assert.ok(!existsSync(resolve(cwd, '.claude', 'skills', 'capture', 'topics.seed.md')), 'topics.seed.md must not ride into the installed skill');
+    // The seed is still consumed: init writes wherefore/topics.md from it.
+    assert.ok(existsSync(resolve(cwd, 'wherefore', 'topics.md')), 'topics.md should still be seeded');
+  });
+});
+
 test('init --agent claude,codex writes only those targets', () => {
   withProject('named', (cwd) => {
     const result = spawn(['init', '--agent', 'claude,codex'], { cwd });

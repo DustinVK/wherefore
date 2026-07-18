@@ -36,5 +36,5 @@ attribution) into non-Claude repos, so fixing that is the price of keeping them.
 - Keep skills as-is, marked experimental: rejected. Ships misleading Claude-specific text to non-Claude users, which is the fragile version of shipping.
 
 ## Open questions / follow-ups
-- Follow-up work before skills are non-experimental: make skill `description` triggers agent-neutral (drop `/wherefore:*`); stop `capture` writing a "Claude Code skill" attribution into consumer repos; stop `topics.seed.md` leaking into the installed skill dir; decide how skills version independently of the `wherefore` CLI.
+- Follow-up work before skills are non-experimental: make skill `description` triggers agent-neutral (drop `/wherefore:*`); stop `capture` writing a "Claude Code skill" attribution into consumer repos; stop `topics.seed.md` leaking into the installed skill dir; Q-009: decide how skills version independently of the `wherefore` CLI.
 - Evidence: 2026-07-18-cross-agent-skill-validation. Prior context: 2026-07-04-init-skills-on-by-default, 2026-06-25-agents-md-cross-tool.

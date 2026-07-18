@@ -346,7 +346,12 @@ if (command === 'dashboard') {
             // skill deleted with no replacement.
             const tmpDest = `${dest}.tmp`;
             await rm(tmpDest, { recursive: true, force: true });
-            await cp(resolve(PACKAGE_ROOT, 'skills', skill), tmpDest, { recursive: true });
+            // topics.seed.md is a seed init already used to write wherefore/topics.md;
+            // it is not part of the runtime skill, so keep it out of the installed copy.
+            await cp(resolve(PACKAGE_ROOT, 'skills', skill), tmpDest, {
+              recursive: true,
+              filter: (src) => !src.endsWith('topics.seed.md'),
+            });
             if (exists) await rm(dest, { recursive: true, force: true });
             await rename(tmpDest, dest);
             console.log(`  Installed skill '${skill}'${isForce && exists ? ' (overwritten)' : ''}.`);
