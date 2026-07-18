@@ -27,13 +27,14 @@ const USAGE = `wherefore-dashboard -- build or preview a static dashboard from a
 Usage:
   wherefore-dashboard build [--src <path>] [--out <path>] [--title <string>]
   wherefore-dashboard dev   [--src <path>] [--title <string>]
-  wherefore-dashboard init
 
 Options:
   --src <path>     Path to the wherefore/ directory to render. Default: ./wherefore
   --out <path>     Output directory for the built site. Default: ./dist
   --title <string> Override the dashboard title.
-  -h, --help       Show this help.`;
+  -h, --help       Show this help.
+
+To scaffold a wherefore/ log or install skills, use the wherefore CLI: npx wherefore init.`;
 
 function checkSrc(src) {
   const logDir = resolve(src, 'log');
@@ -113,13 +114,11 @@ if (command === 'build') {
   });
 
 } else if (command === 'init') {
-  console.log('init: not yet implemented.');
-  console.log('Intended: scaffold package.json with @dustinvk/wherefore-dashboard as devDependency,');
-  console.log('a .gitignore entry for dist/, and an optional wherefore-dashboard.config.json.');
+  console.error('init moved to the wherefore CLI. Run: npx wherefore init');
   process.exit(1);
 
 } else {
   console.error(`Unknown command: ${command ?? '(none)'}`);
-  console.error('Usage: wherefore-dashboard <build|dev|init> [--src <path>] [--out <path>] [--title <string>]');
+  console.error('Usage: wherefore-dashboard <build|dev> [--src <path>] [--out <path>] [--title <string>]');
   process.exit(1);
 }

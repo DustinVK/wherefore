@@ -12,19 +12,26 @@ wherefore/
   topics.md         controlled tag vocabulary: Areas and Topics
   log/YYYY-MM-DD-short-slug.md    one decision per file
   questions/Q-NNN-short-slug.md   one question per file (ID prefix + scannable slug)
+  plan/short-slug.md              forward-looking plans and roadmaps, one per file
 ```
 
-There is no index file. The frontmatter in each `log/` and `questions/` file is the
-single source of truth; readers derive what they need at read time. Do not create or
-maintain an `INDEX.md` or `QUESTIONS.md`; a repo carrying them from an older version
-is no longer using them.
+If `wherefore/` does not exist, create it plus `log/`, `questions/`, a starter
+`topics.md`, and a `README.md` containing exactly:
+
+```markdown
+# wherefore
+
+A decision log in plain markdown. Each file captures what was decided, why, and what was ruled out.
+
+Maintained by the [wherefore](https://github.com/DustinVK/wherefore) skill.
+```
 
 ## Reading (answering "why did we...", "what did we decide about...")
 
 1. Read only the leading frontmatter block of every `log/*.md` file (it is short),
    and shortlist by area, topic, story, or title. Then open only the shortlisted
    files (1-5), not the whole log. The frontmatter also carries each entry's
-   `status` and `superseded_by`, so filtering and chain-following need no index.
+   `status` and `superseded_by`, so filtering and chain-following need nothing else.
 2. Treat status `active`, `current`, or absent as current. For a `superseded`
    entry, follow its `superseded_by` slug to the replacement (repeat until you
    reach an active entry). Exclude `obsolete` entries unless asked about history.
@@ -69,8 +76,7 @@ The rationale, constraints, tradeoffs. Highest-value section.
 ```
 
 Tag from `topics.md` only. Reuse existing tags; add a new one only when nothing
-fits, and append it to the right section of `topics.md`. That is the whole write:
-there is no index to append to.
+fits, and append it to the right section of `topics.md`. That is the whole write.
 
 ## Superseding a decision (never silently; confirm with the user first)
 
@@ -86,7 +92,7 @@ When a new decision replaces an old one, or the user asks to retire an entry:
    SUPERSEDED YYYY-MM-DD -> see <new-slug>. Kept for history, not current.
    ```
 
-The frontmatter change is the whole update; there is no index status column to edit.
+The frontmatter change is the whole update.
 
 For an abandoned decision with no replacement: `status: obsolete`, a
 `superseded_date`, and a banner `OBSOLETE YYYY-MM-DD. Kept for history, not current.`
@@ -115,7 +121,7 @@ resolution_slug:
 ---
 ```
 
-Creating the file is the whole registration; there is no question index to append to.
+Creating the file is the whole registration.
 
 To resolve: set the Q-file `status: resolved`, fill `resolution` (one sentence) and
 `resolution_slug` (source slug, or blank if standalone). The frontmatter is the only

@@ -5,8 +5,8 @@ description: >
   Use whenever the user wants to log, record, save, or archive the outcome of a
   discussion, Slack huddle, design conversation, standup, or meeting, including when
   they paste a raw or AI-generated summary and say things like "log this", "add this
-  to the discussion log", "record this discussion", "save this for later", or invoke
-  "/wherefore:capture". Trigger even if the user only pastes a chunk of conversation
+  to the discussion log", "record this discussion", "save this for later".
+  Trigger even if the user only pastes a chunk of conversation
   and asks to capture the important parts; this skill distills it rather than storing
   it verbatim.
 ---
@@ -49,12 +49,6 @@ wherefore/
     └── YYYY-MM-DD-short-slug.md   # one file per discussion
 ```
 
-There is no separate index file. The frontmatter in the entry and question
-files is the single source of truth; readers derive what they need at read time.
-Do not create, append to, or maintain any index file. A repo that still carries a
-legacy index file from an older plugin version is no longer using it; leave it
-untouched (or mention it can be deleted), never recreate it.
-
 If `wherefore/` does not exist, create it plus `log/`, `questions/`, a starter
 `topics.md`, and a `README.md` containing exactly:
 
@@ -63,7 +57,7 @@ If `wherefore/` does not exist, create it plus `log/`, `questions/`, a starter
 
 A decision log in plain markdown. Each file captures what was decided, why, and what was ruled out.
 
-Maintained by the [wherefore](https://github.com/DustinVK/wherefore) Claude Code skill.
+Maintained by the [wherefore](https://github.com/DustinVK/wherefore) skill.
 ```
 
 Never invent a second wherefore location. If the repo already has `wherefore/`, use it.
@@ -172,7 +166,7 @@ scalar to a one-line summary and move the detail into a body section.
     - For each confirmed: set the Q file `status: resolved`, fill `resolution` (one quoted sentence), set `resolution_slug` to the new slug. Report closures.
     - No match: skip silently.
 
-11. Report back. Show the title, assigned areas and topics (flag any new tag), linked stories, any supersession applied, and any Q-IDs assigned or closed. This is the approval moment: you distilled and tagged on the user's behalf, so let them correct it before it ossifies. There is no index to update; `ask` derives everything from the frontmatter you just wrote.
+11. Report back. Show the title, assigned areas and topics (flag any new tag), linked stories, any supersession applied, and any Q-IDs assigned or closed. This is the approval moment: you distilled and tagged on the user's behalf, so let them correct it before it ossifies. `ask` derives everything from the frontmatter you just wrote.
 
 ## Examples
 

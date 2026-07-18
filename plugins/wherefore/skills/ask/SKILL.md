@@ -6,8 +6,8 @@ description: >
   whenever the user asks why a feature was built the way it was, what was decided
   about a particular user story, topic, or component, or wants to recall an
   earlier conversation -- e.g. "why did we...", "what did we decide about...",
-  "is there anything in the log about...", "how were we planning to implement...",
-  or invoke "/wherefore:ask". Trigger even when the user doesn't name the wherefore
+  "is there anything in the log about...", "how were we planning to implement...".
+  Trigger even when the user doesn't name the wherefore
   explicitly but is clearly asking about a prior decision or its rationale. If
   nothing relevant is found, say so plainly rather than guessing.
 ---
@@ -32,7 +32,7 @@ wherefore/
     └── YYYY-MM-DD-short-slug.md  # one file per discussion
 ```
 
-There is no index file to read. The frontmatter of the entry and question files
+The frontmatter of the entry and question files
 is the single source of truth; you derive what you need at read time. If
 `wherefore/` or `wherefore/log/` does not exist, or `log/` holds no `*.md`
 entries, tell the user the wherefore is empty or not set up yet; do not

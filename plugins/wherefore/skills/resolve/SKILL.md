@@ -3,8 +3,8 @@ name: resolve
 description: >
    Mark an open question in the team's wherefore log as resolved. Use whenever the user
    wants to close out an open question, e.g. "mark Q-042 resolved", "we figured
-   out Q-007", "close Q-015", "we have an answer for Q-003", or invokes
-   "/wherefore:resolve". Works both when resolution comes from a new wherefore entry and
+   out Q-007", "close Q-015", "we have an answer for Q-003". Works both when
+   resolution comes from a new wherefore entry and
    when it's a standalone answer with no new entry.
 ---
 
@@ -12,8 +12,8 @@ description: >
 
 Close out an open question by updating its individual file in
 `wherefore/questions/`, recording what was decided, why, and which discussion (if
-any) contains the full context. There is no question index to maintain; the file's
-frontmatter is the single source of truth.
+any) contains the full context. The file's frontmatter is the single source of
+truth.
 
 ## Frontmatter safety
 

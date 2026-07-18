@@ -5,8 +5,8 @@ description: >
   user explicitly wants to retire an existing entry without capturing a new
   discussion -- e.g. "mark 2026-01-15-graphql-caching obsolete", "supersede the
   RLS entry with the schema-per-tenant one", "we dropped GraphQL, mark that
-  decision dead", or invokes "/wherefore:supersede". Does NOT capture a new
-  discussion; that belongs to the capture skill.
+  decision dead". Does NOT capture a new discussion; that belongs to the
+  capture skill.
 ---
 
 # Wherefore: supersede
@@ -14,8 +14,8 @@ description: >
 Retire an existing wherefore entry by marking it `superseded` (with a pointer to its
 replacement) or `obsolete` (context gone, no replacement). Updates the entry
 file and adds a visible banner, so neither the `ask` skill nor a human skimming
-raw files is left guessing. There is no index to update; the entry's frontmatter is
-the single source of truth.
+raw files is left guessing. The entry's frontmatter is the single source of
+truth.
 
 ## Workflow
 
