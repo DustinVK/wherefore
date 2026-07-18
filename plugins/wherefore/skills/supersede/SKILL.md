@@ -5,8 +5,8 @@ description: >
   user explicitly wants to retire an existing entry without capturing a new
   discussion -- e.g. "mark 2026-01-15-graphql-caching obsolete", "supersede the
   RLS entry with the schema-per-tenant one", "we dropped GraphQL, mark that
-  decision dead", or invokes "/wherefore:supersede". Does NOT capture a new
-  discussion; that belongs to the capture skill.
+  decision dead". Does NOT capture a new discussion; that belongs to the
+  capture skill.
 ---
 
 # Wherefore: supersede

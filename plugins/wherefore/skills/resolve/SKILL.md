@@ -3,8 +3,8 @@ name: resolve
 description: >
    Mark an open question in the team's wherefore log as resolved. Use whenever the user
    wants to close out an open question, e.g. "mark Q-042 resolved", "we figured
-   out Q-007", "close Q-015", "we have an answer for Q-003", or invokes
-   "/wherefore:resolve". Works both when resolution comes from a new wherefore entry and
+   out Q-007", "close Q-015", "we have an answer for Q-003". Works both when
+   resolution comes from a new wherefore entry and
    when it's a standalone answer with no new entry.
 ---
 

@@ -6,8 +6,8 @@ description: >
   whenever the user asks why a feature was built the way it was, what was decided
   about a particular user story, topic, or component, or wants to recall an
   earlier conversation -- e.g. "why did we...", "what did we decide about...",
-  "is there anything in the log about...", "how were we planning to implement...",
-  or invoke "/wherefore:ask". Trigger even when the user doesn't name the wherefore
+  "is there anything in the log about...", "how were we planning to implement...".
+  Trigger even when the user doesn't name the wherefore
   explicitly but is clearly asking about a prior decision or its rationale. If
   nothing relevant is found, say so plainly rather than guessing.
 ---

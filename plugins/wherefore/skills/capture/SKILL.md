@@ -5,8 +5,8 @@ description: >
   Use whenever the user wants to log, record, save, or archive the outcome of a
   discussion, Slack huddle, design conversation, standup, or meeting, including when
   they paste a raw or AI-generated summary and say things like "log this", "add this
-  to the discussion log", "record this discussion", "save this for later", or invoke
-  "/wherefore:capture". Trigger even if the user only pastes a chunk of conversation
+  to the discussion log", "record this discussion", "save this for later".
+  Trigger even if the user only pastes a chunk of conversation
   and asks to capture the important parts; this skill distills it rather than storing
   it verbatim.
 ---
@@ -57,7 +57,7 @@ If `wherefore/` does not exist, create it plus `log/`, `questions/`, a starter
 
 A decision log in plain markdown. Each file captures what was decided, why, and what was ruled out.
 
-Maintained by the [wherefore](https://github.com/DustinVK/wherefore) Claude Code skill.
+Maintained by the [wherefore](https://github.com/DustinVK/wherefore) skill.
 ```
 
 Never invent a second wherefore location. If the repo already has `wherefore/`, use it.

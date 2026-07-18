@@ -23,7 +23,7 @@ If `wherefore/` does not exist, create it plus `log/`, `questions/`, a starter
 
 A decision log in plain markdown. Each file captures what was decided, why, and what was ruled out.
 
-Maintained by the [wherefore](https://github.com/DustinVK/wherefore) Claude Code skill.
+Maintained by the [wherefore](https://github.com/DustinVK/wherefore) skill.
 ```
 
 ## Reading (answering "why did we...", "what did we decide about...")
