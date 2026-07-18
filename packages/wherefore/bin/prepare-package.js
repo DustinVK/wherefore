@@ -50,7 +50,9 @@ async function main() {
     try {
       const srcNewest = Math.max(...(await Promise.all(SOURCES.map(newestMtime))));
       const destNewest = Math.max(await newestMtime(destSkills), await newestMtime(destTemplates));
-      if (destNewest >= srcNewest) {
+      // Strict >: on a tie (coarse-mtime filesystems, or a checkout that stamps every
+      // file the same second) rebuild rather than trust possibly-stale assets.
+      if (destNewest > srcNewest) {
         console.log('Package assets up to date; skipping regeneration.');
         return;
       }

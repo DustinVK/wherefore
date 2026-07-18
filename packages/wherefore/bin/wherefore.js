@@ -127,12 +127,20 @@ if (command === 'dashboard') {
   const [cmd, baseArgs] = overrideBin
     ? [process.execPath, [overrideBin]]
     : ['npx', ['--yes', DASHBOARD_PKG]];
-  const child = spawn(cmd, [...baseArgs, ...forwarded], { stdio: 'inherit' });
+  // On Windows the launcher is npx.cmd; spawn cannot resolve/run a .cmd without a
+  // shell, so it needs shell:true there. The override path is a real executable
+  // (process.execPath), which must stay shell-free to avoid arg-quoting issues.
+  const child = spawn(cmd, [...baseArgs, ...forwarded], {
+    stdio: 'inherit',
+    shell: !overrideBin && process.platform === 'win32',
+  });
   child.on('error', (err) => {
     console.error(`Failed to launch dashboard: ${err.message}`);
     process.exit(1);
   });
-  child.on('exit', (code) => process.exit(code ?? 0));
+  // A signal-terminated child reports code === null; treat that as failure (exit 1)
+  // rather than coercing it to 0, so wrappers/CI see the crash.
+  child.on('exit', (code, signal) => process.exit(signal ? 1 : (code ?? 0)));
 
 } else if (command === 'init') {
   const isGlobal = rawArgs.includes('--global');
@@ -177,6 +185,14 @@ if (command === 'dashboard') {
   await mkdir(logDir, { recursive: true });
   await mkdir(questionsDir, { recursive: true });
   await mkdir(planDir, { recursive: true });
+
+  // git does not track empty directories; drop a .gitkeep in each so the scaffold
+  // survives commit. Without this, log/ vanishes on a fresh clone and the dashboard
+  // (which stats wherefore/log) refuses to launch even though init reported success.
+  for (const dir of [logDir, questionsDir, planDir]) {
+    const keep = resolve(dir, '.gitkeep');
+    if (!existsSync(keep)) await writeFile(keep, '', 'utf8');
+  }
 
   const topicsPath = resolve(whereforeDir, 'topics.md');
   if (!existsSync(topicsPath)) {
@@ -242,7 +258,17 @@ if (command === 'dashboard') {
   const agentsPath = resolve(targetRoot, 'AGENTS.md');
   const templateAgentsPath = resolve(PACKAGE_ROOT, 'templates', 'AGENTS.md');
   const agentsExists = existsSync(agentsPath);
-  if (!agentsExists || isForce) {
+  // Only overwrite an existing AGENTS.md under --force when it is our own managed
+  // floor (it carries the template's marker heading). A hand-written AGENTS.md is
+  // never clobbered: users run --force to refresh skills, and that must not silently
+  // destroy custom agent guidance. (CLAUDE.md is handled idempotently below.)
+  let agentsManaged = false;
+  if (agentsExists) {
+    try {
+      agentsManaged = (await readFile(agentsPath, 'utf8')).includes('wherefore: agent instructions');
+    } catch (_) {}
+  }
+  if (!agentsExists || (isForce && agentsManaged)) {
     try {
       await cp(templateAgentsPath, agentsPath);
       console.log(`  Created AGENTS.md in project root${isForce && agentsExists ? ' (overwritten)' : ''}.`);
@@ -250,6 +276,8 @@ if (command === 'dashboard') {
       console.warn(`  Warning: Could not create AGENTS.md: ${err.message}`);
       hadError = true;
     }
+  } else if (isForce && !agentsManaged) {
+    console.warn('  AGENTS.md exists with custom content; not overwriting even with --force. Merge the wherefore floor manually.');
   } else {
     console.log('  AGENTS.md already exists, skipping. Pass --force to overwrite.');
   }
