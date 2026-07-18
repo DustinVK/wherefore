@@ -174,6 +174,51 @@ test('init --agent bogus exits non-zero', () => {
   });
 });
 
+test('init --agent=claude (equals form) installs claude, not the auto fallback', () => {
+  withProject('agent-eq', (cwd) => {
+    const result = spawn(['init', '--agent=claude'], { cwd });
+    assert.equal(result.status, 0);
+    assert.ok(hasSkills(cwd, '.claude'), 'equals form should install claude');
+    assert.ok(!existsSync(resolve(cwd, '.agents', 'skills')), 'must not fall back to auto/.agents');
+  });
+});
+
+test('init --agent=bogus (equals form) is validated too', () => {
+  withProject('agent-eq-bogus', (cwd) => {
+    const result = spawn(['init', '--agent=bogus'], { cwd });
+    assert.notEqual(result.status, 0);
+  });
+});
+
+test('init --agent , (empty list) exits non-zero', () => {
+  withProject('agent-empty', (cwd) => {
+    const result = spawn(['init', '--agent', ','], { cwd });
+    assert.notEqual(result.status, 0);
+  });
+});
+
+test('a bad --agent value fails before scaffolding anything', () => {
+  withProject('agent-failfast', (cwd) => {
+    const result = spawn(['init', '--agent', 'claud'], { cwd });
+    assert.notEqual(result.status, 0);
+    assert.ok(!existsSync(resolve(cwd, 'wherefore')), 'must not scaffold wherefore/ on a usage error');
+    assert.ok(!existsSync(resolve(cwd, 'AGENTS.md')), 'must not write AGENTS.md on a usage error');
+  });
+});
+
+test('init without a package.json notes the skipped devDependency and still succeeds', () => {
+  const cwd = uniqueTemp('no-pkg');
+  mkdirSync(cwd, { recursive: true });
+  try {
+    const result = spawn(['init', '--no-skills'], { cwd });
+    assert.equal(result.status, 0);
+    assert.ok(!existsSync(resolve(cwd, 'package.json')), 'must not fabricate a package.json');
+    assert.ok(/No package\.json found/.test(result.stdout), 'should note the skipped devDependency');
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test('init --agent claude skips existing skill, --force overwrites', () => {
   withProject('force', (cwd) => {
     mkdirSync(resolve(cwd, '.claude', 'skills', 'capture'), { recursive: true });

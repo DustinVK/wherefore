@@ -164,8 +164,8 @@ node packages/wherefore-dashboard/bin/wherefore-dashboard.js dev --src ./wherefo
 `npx wherefore init` scaffolds everything a project needs: a `wherefore/` directory
 (`log/`, `questions/`, `plan/`, and a starter `topics.md`), an `AGENTS.md` so any
 coding agent can read and maintain the log, and a `CLAUDE.md` snippet that makes Claude
-offer to capture decisions. It also adds a `dist/` line to `.gitignore` and a `wherefore`
-devDependency.
+offer to capture decisions. It also adds a `dist/` line to `.gitignore` and, if the
+project has a `package.json`, a `wherefore` devDependency.
 
 By default it also installs the SKILL.md skills for your agent, auto-detecting which
 agent(s) the repo uses and falling back to the shared `.agents/skills` path (Copilot,

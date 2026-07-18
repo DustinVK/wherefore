@@ -61,8 +61,14 @@ function parseArgs(argv) {
   const command = args[0];
   const flags = {};
   for (let i = 1; i < args.length; i++) {
-    if (args[i] && args[i].startsWith('--') && args[i + 1] && !args[i + 1].startsWith('--')) {
-      flags[args[i].slice(2)] = args[i + 1];
+    const arg = args[i];
+    if (!arg || !arg.startsWith('--')) continue;
+    // Accept both --flag=value and --flag value forms.
+    const eq = arg.indexOf('=');
+    if (eq !== -1) {
+      flags[arg.slice(2, eq)] = arg.slice(eq + 1);
+    } else if (args[i + 1] && !args[i + 1].startsWith('--')) {
+      flags[arg.slice(2)] = args[i + 1];
       i++;
     }
   }
@@ -73,13 +79,14 @@ function parseArgs(argv) {
 // comments and precedes it with human-facing paste instructions. Install only the
 // block between the markers so those instructions do not leak into CLAUDE.md.
 function extractSnippetBlock(content) {
-  const start = content.indexOf('paste from here');
-  const end = content.indexOf('to here', start + 1);
+  // Match the full marker comments, not loose substrings: a stray "to here" inside
+  // the block must not truncate extraction and leak the paste instructions.
+  const START = '<!-- ===== paste from here ===== -->';
+  const END = '<!-- ===== to here ===== -->';
+  const start = content.indexOf(START);
+  const end = content.indexOf(END, start + START.length);
   if (start === -1 || end === -1) return content.trim();
-  const afterStart = content.indexOf('-->', start);
-  const beforeEnd = content.lastIndexOf('<!--', end);
-  if (afterStart === -1 || beforeEnd === -1 || afterStart >= beforeEnd) return content.trim();
-  return content.slice(afterStart + 3, beforeEnd).trim();
+  return content.slice(start + START.length, end).trim();
 }
 
 // Resolve the requested agents to a deduped list of absolute skill dirs.
@@ -97,6 +104,12 @@ function resolveSkillDirs({ agentArg, isGlobal, targetRoot }) {
     rel = detected.size ? [...detected] : ['.agents/skills'];
   } else {
     const names = agentArg.split(',').map((s) => s.trim()).filter(Boolean);
+    if (names.length === 0) {
+      return {
+        dirs: [],
+        error: `--agent needs at least one agent name. Valid: ${Object.keys(AGENT_DIRS).join(', ')}, all, auto`,
+      };
+    }
     const unknown = names.filter((n) => !(n in AGENT_DIRS));
     if (unknown.length) {
       return {
@@ -167,6 +180,13 @@ if (command === 'dashboard') {
     }));
   }
 
+  // A bad --agent value is a usage error: fail before touching the filesystem so a
+  // typo (e.g. --agent claud) does not leave a half-initialized repo behind.
+  if (skillError) {
+    console.error(`Error: ${skillError}`);
+    process.exit(1);
+  }
+
   // 1. Read this CLI's version to pin the consumer's devDependency.
   let cliVersion = 'latest';
   try {
@@ -234,6 +254,10 @@ if (command === 'dashboard') {
       console.warn(`  Warning: Could not update package.json: ${err.message}`);
       hadError = true;
     }
+  } else {
+    // wherefore works in any repo (the log is just markdown); we don't fabricate a
+    // package.json for non-Node projects, but say so rather than silently skipping.
+    console.log('  No package.json found; skipped pinning the wherefore devDependency (run the dashboard via npx @dustinvk/wherefore-dashboard).');
   }
 
   // 4. Update .gitignore
@@ -309,9 +333,6 @@ if (command === 'dashboard') {
   // auto-detection is not fooled by the AGENTS.md / CLAUDE.md written in between.
   if (!wantsSkills) {
     console.log('Skipping agent skill install (--no-skills).');
-  } else if (skillError) {
-    console.error(`  Error: ${skillError}`);
-    hadError = true;
   } else {
     for (const skillsDir of skillDirs) {
       console.log(`Installing skills into ${skillsDir}...`);
