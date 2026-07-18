@@ -29,7 +29,7 @@ and the GitHub blob view are where most people read it.
 - Do not use inline bold to fake structure. The lead clause carries the scan. Bold scattered mid-sentence is the main cause of wall-of-text records. Reserve emphasis for a rare load-bearing term.
 - Keep sentences short and concrete.
 - Why is the single home for rationale. State the outcome in Decisions, the reasoning in Why. Do not scatter reasoning across decision bullets.
-- Unresolved threads are not decisions. They go to Open questions and become a Q-NNN, never a Decisions bullet dressed as certainty.
+- Unresolved threads are not decisions. They go to Open questions and become a numbered question (`Q-NNN` id, in a `Q-NNN-short-slug.md` file), never a Decisions bullet dressed as certainty.
 
 Verdict-led, in practice:
 - Weak: "There are two fulfillment paths, direct and via inventory, and after weighing platform fit we lean toward starting inventory-based and moving to direct later."
