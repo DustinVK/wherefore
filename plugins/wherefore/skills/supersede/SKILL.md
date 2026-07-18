@@ -17,6 +17,15 @@ file and adds a visible banner, so neither the `ask` skill nor a human skimming
 raw files is left guessing. The entry's frontmatter is the single source of
 truth.
 
+This skill is the only writer of decision status. Plan items have their own status
+machine (`todo`/`doing`/`done`/`dropped`) that never touches a decision's status; if
+any plan flow needs to retire or replace a decision, it routes here, not through the
+`plan` skill.
+
+No em dashes. Periods, commas, colons, semicolons, or parentheses instead. Firm project rule.
+
+Never delete anything under a `wherefore/` data dir. Retire, do not delete.
+
 ## Workflow
 
 1. **Find the target entry.** Locate `wherefore/log/<slug>.md` directly. If you only
@@ -72,6 +81,12 @@ truth.
 
 6. **Report back.** List every file touched. If the replacement entry isn't
    logged yet, say so and suggest running the `capture` skill to log it.
+   Then flag plan items pointing at the retired decision: dump `wherefore/plan/P-*.md`
+   frontmatter and find any item whose `decision_ref` includes the slug you just
+   superseded or marked obsolete, and tell the user which ones. Do not mutate them: the
+   ref is still accurate history, and the chain is followable through `superseded_by`.
+   This reads `decision_ref` only and writes nothing to `plan/`, so it does not compromise
+   this skill's standing as the sole writer of decision status.
 
 ## Examples
 

@@ -12,7 +12,7 @@ wherefore/
   topics.md         controlled tag vocabulary: Areas and Topics
   log/YYYY-MM-DD-short-slug.md    one decision per file
   questions/Q-NNN-short-slug.md   one question per file (ID prefix + scannable slug)
-  plan/short-slug.md              forward-looking plans and roadmaps, one per file
+  plan/P-NNN-short-slug.md        forward-looking plan items, one per file
 ```
 
 If `wherefore/` does not exist, create it plus `log/`, `questions/`, a starter
@@ -126,6 +126,48 @@ Creating the file is the whole registration.
 To resolve: set the Q-file `status: resolved`, fill `resolution` (one sentence) and
 `resolution_slug` (source slug, or blank if standalone). The frontmatter is the only
 place the status lives.
+
+## Plan items
+
+Forward-looking work items live in `wherefore/plan/P-NNN-short-slug.md`, one per file, a
+separate collection from decisions. A plan item is a committed intention; a decision is a
+resolved ruling. Do not create plan items for work a decision merely implies unless a human
+asks; commitments nobody chose are noise.
+
+Next P-ID = (highest `id:` across `wherefore/plan/P-*.md`) + 1; IDs are sequential and never
+reused, including numbers freed by dropped items. The `id:` field is authoritative; the
+filename slug is only for human scanning. Use this frontmatter:
+
+```markdown
+---
+id: P-NNN
+title: Short human title
+status: todo            # todo | doing | done | dropped
+created: YYYY-MM-DD
+updated:                # YYYY-MM-DD, set on ANY write: status change or body edit, including a checkbox toggle
+area:                   # single area from topics.md, or omit
+topics: []              # cross-cutting topics from topics.md, or omit
+milestone:              # M1, defined in wherefore/ROADMAP.md, or omit
+decision_ref:           # one or more YYYY-MM-DD decision slugs, comma-separated, no .md; or omit
+question_ref:           # a single Q-NNN this item is blocked on, or omit
+answers:                # a single Q-NNN this item is the work of answering (a spike), or omit
+dropped_reason:         # short why, used when status: dropped
+---
+```
+
+Body: break the work into `- [ ]` checkboxes concrete enough to check off; prose is valid too.
+
+- Status flow is `todo -> doing -> done`; any move to `dropped` is abandonment and requires a
+  `dropped_reason` or a `decision_ref`. Dropped items are kept, never deleted; the dropped item
+  plus its reason IS the plan-change record.
+- `blocked` is never written. It is derived: an item is blocked while it carries a
+  `question_ref` to an open question. At most one blocking question per item.
+- `answers` is a single `Q-NNN` a spike is the work of answering. It is the opposite of
+  `question_ref` (blocked by) and does not make the item blocked. Never point `answers` and
+  `question_ref` at the same `Q-NNN`.
+- Plan status is a separate state machine from decision status. Never put
+  `active`/`superseded`/`obsolete` on a plan item, or `todo`/`doing`/`done`/`dropped` on a
+  decision. Retiring or replacing a decision is a supersession on the decision, not a plan edit.
 
 ## Conventions
 
