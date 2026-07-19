@@ -1,0 +1,158 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import PlanRow from '../components/PlanRow.astro';
+import { taskProgress, isBlocked } from '../lib/plan';
+
+const allPlan = await getCollection('plan');
+const allQuestions = await getCollection('questions');
+
+const questionStatusById = new Map(allQuestions.map(q => [q.id, q.data.status]));
+
+const cards = allPlan.map(p => ({
+  id: p.id,
+  data: p.data,
+  blocked: isBlocked({ status: p.data.status, questionRef: p.data.questionRef }, questionStatusById),
+  progress: taskProgress(p.body ?? ''),
+}));
+type Card = (typeof cards)[number];
+
+// Newest first within a section: `updated` when present (bumped on any write),
+// else `created`. IDs are sequential too, so this also reads as newest-item-first.
+const recency = (c: Card) => c.data.updated ?? c.data.created;
+const byRecency = (a: Card, b: Card) => recency(b).localeCompare(recency(a));
+
+const inFlight = cards.filter(c => c.data.status === 'doing' && !c.blocked).sort(byRecency);
+const blocked  = cards.filter(c => c.blocked).sort(byRecency);
+const upNext   = cards.filter(c => c.data.status === 'todo' && !c.blocked).sort(byRecency);
+const done     = cards.filter(c => c.data.status === 'done').sort(byRecency);
+const dropped  = cards.filter(c => c.data.status === 'dropped').sort(byRecency);
+
+const nonDropped = cards.filter(c => c.data.status !== 'dropped');
+const overallPct = nonDropped.length ? Math.round((done.length / nonDropped.length) * 100) : 0;
+
+const allAreas = [...new Set(allPlan.map(p => p.data.area).filter((a): a is string => !!a))].sort();
+
+const sections = [
+  { key: 'in-flight', head: 'In flight', items: inFlight, dropped: false },
+  { key: 'blocked',   head: 'Blocked',   items: blocked,  dropped: false },
+  { key: 'up-next',   head: 'Up next',   items: upNext,   dropped: false },
+  { key: 'done',      head: 'Done',      items: done,     dropped: false },
+  { key: 'dropped',   head: 'Dropped',   items: dropped,  dropped: true  },
+].filter(s => s.items.length > 0);
+---
+<Base pageTitle="Plan">
+  {allPlan.length === 0 ? (
+    <p class="empty">No plan items yet.</p>
+  ) : (
+    <>
+      <div class="count-strip">
+        <span class="count"><span class="status-dot is-doing"></span><b>{inFlight.length}</b> doing</span>
+        <span class="count"><span class="status-dot is-blocked"></span><b>{blocked.length}</b> blocked</span>
+        <span class="count"><span class="status-dot is-todo"></span><b>{upNext.length}</b> todo</span>
+        <span class="count"><span class="status-dot is-done"></span><b>{done.length}</b> done</span>
+        {dropped.length > 0 && (
+          <span class="count is-dropped"><span class="status-dot is-dropped"></span><b>{dropped.length}</b> dropped</span>
+        )}
+      </div>
+
+      <div class="overall" title={`${done.length} of ${nonDropped.length} done`}>
+        <span class="overall-track"><span class="overall-fill" style={`width:${overallPct}%`}></span></span>
+        <span class="overall-label">{done.length} of {nonDropped.length} done · dropped excluded</span>
+      </div>
+
+      <div class="filter-row" id="plan-filters">
+        {allAreas.length > 0 && (
+          <select id="plan-area" class="filter-select" aria-label="Filter by area">
+            <option value="">area: all</option>
+            {allAreas.map(a => <option value={a}>{a}</option>)}
+          </select>
+        )}
+        <input
+          type="text"
+          id="plan-search"
+          class="filter-search"
+          placeholder="search plan items…"
+          aria-label="Search plan items"
+        />
+        {dropped.length > 0 && (
+          <>
+            <input type="checkbox" id="dropped-toggle" class="toggle-cb" />
+            <label for="dropped-toggle" class="filter-toggle">
+              <span class="toggle-track"></span>
+              show dropped
+            </label>
+          </>
+        )}
+      </div>
+
+      <p class="no-results-msg" id="plan-no-results">No matching plan items.</p>
+
+      {sections.map(section => (
+        <section class="plan-section" data-section={section.key} hidden={section.dropped}>
+          <div class="page-section-head">{section.head}</div>
+          <ul class="plan-list">
+            {section.items.map(c => (
+              <PlanRow
+                id={c.id}
+                status={c.data.status}
+                blocked={c.blocked}
+                title={c.data.title}
+                area={c.data.area}
+                milestone={c.data.milestone}
+                done={c.progress.done}
+                total={c.progress.total}
+              />
+            ))}
+          </ul>
+        </section>
+      ))}
+    </>
+  )}
+</Base>
+
+<script is:inline>
+  (function () {
+    const areaFilter    = document.getElementById('plan-area');
+    const searchFilter  = document.getElementById('plan-search');
+    const droppedToggle = document.getElementById('dropped-toggle');
+    const noResults     = document.getElementById('plan-no-results');
+    const sections      = Array.from(document.querySelectorAll('.plan-section'));
+    const rows          = Array.from(document.querySelectorAll('.plan-row'));
+    if (!rows.length) return;
+
+    function applyFilter() {
+      const area        = areaFilter   ? areaFilter.value   : '';
+      const search      = searchFilter ? searchFilter.value.toLowerCase().trim() : '';
+      const showDropped = droppedToggle ? droppedToggle.checked : false;
+
+      let visible = 0;
+      for (const row of rows) {
+        const rowArea   = row.dataset.area || '';
+        const title     = row.dataset.title || '';
+        const isDropped = row.dataset.status === 'dropped';
+
+        const ok = (!area   || rowArea === area)
+                && (!search || title.includes(search))
+                && (showDropped || !isDropped);
+
+        row.hidden = !ok;
+        if (ok) visible++;
+      }
+
+      // Hide a whole section when filtering emptied it.
+      for (const section of sections) {
+        const anyVisible = Array.from(section.querySelectorAll('.plan-row')).some(r => !r.hidden);
+        section.hidden = !anyVisible;
+      }
+
+      if (noResults) noResults.style.display = visible === 0 ? 'block' : 'none';
+    }
+
+    [areaFilter, searchFilter, droppedToggle].forEach(el => {
+      if (el) el.addEventListener('input', applyFilter);
+    });
+
+    applyFilter();
+  })();
+</script>

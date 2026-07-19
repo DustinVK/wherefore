@@ -883,3 +883,250 @@ html[data-theme="light"] .theme-toggle::before { content: '●'; }
   padding:3px 8px; border-radius:6px;
 }
 .wf-q .txt { font-size:14px; line-height:1.55; color:var(--wf-soft); }
+
+/* ============================================================
+   Plan collection (/plan browse, /plan/[slug] detail, now view)
+   Extends the brand tokens above with plan-status colors; the
+   status vocabulary (todo/doing/done/dropped + derived blocked)
+   is separate from the log's active/superseded/obsolete.
+   ============================================================ */
+
+:root {
+  --plan-doing:        var(--teal-bright);
+  --plan-blocked:      #c48a6a;   /* warm, desaturated marker (not a 2nd brand color) */
+  --plan-blocked-tint: rgba(196,138,106,.12);
+  --plan-blocked-bd:   rgba(196,138,106,.32);
+  --plan-track:        #0f1014;   /* progress-bar track */
+}
+
+@media (prefers-color-scheme: light) {
+  html:not([data-theme="dark"]) {
+    --plan-doing:        var(--teal-dk);
+    --plan-blocked:      #a8623f;
+    --plan-blocked-tint: rgba(168,98,63,.12);
+    --plan-blocked-bd:   rgba(168,98,63,.34);
+    --plan-track:        #ece9e2;
+  }
+}
+
+html[data-theme="light"] {
+  --plan-doing:        var(--teal-dk);
+  --plan-blocked:      #a8623f;
+  --plan-blocked-tint: rgba(168,98,63,.12);
+  --plan-blocked-bd:   rgba(168,98,63,.34);
+  --plan-track:        #ece9e2;
+}
+
+/* ── Count strip (browse header + now-view counts) ───────────── */
+.count-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--faint);
+  margin-bottom: 16px;
+}
+.count { display: inline-flex; align-items: center; gap: 6px; }
+.count b { color: var(--soft); font-weight: 500; }
+.count.is-dropped { opacity: .6; }
+.now-counts { margin-bottom: 24px; }
+
+/* ── Status dot ──────────────────────────────────────────────── */
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  flex: none; display: inline-block;
+  background: var(--faint2);
+}
+.status-dot.is-doing   { background: var(--plan-doing); }
+.status-dot.is-blocked { background: var(--plan-blocked); }
+.status-dot.is-todo    { background: transparent; box-shadow: inset 0 0 0 1.5px var(--faint); }
+.status-dot.is-done    { background: var(--faint); }
+.status-dot.is-dropped { background: transparent; box-shadow: inset 0 0 0 1.5px var(--faint2); }
+.status-dot.is-open    { background: var(--muted); }
+
+/* ── Overall progress bar (browse header) ────────────────────── */
+.overall { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+.overall-track {
+  flex: 1; max-width: 320px; height: 5px; border-radius: 3px;
+  background: var(--plan-track); overflow: hidden;
+}
+.overall-fill { display: block; height: 100%; background: var(--plan-doing); border-radius: 3px; }
+.overall-label { font-family: var(--mono); font-size: 11.5px; color: var(--faint); }
+
+/* ── Sections + list ─────────────────────────────────────────── */
+.plan-section { margin-top: 26px; }
+.plan-section[hidden] { display: none; }
+.plan-list { list-style: none; }
+
+/* ── List row (density unit) ─────────────────────────────────── */
+.plan-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border-soft);
+}
+.plan-list > .plan-row:first-child { border-top: none; }
+.plan-row[hidden] { display: none; }
+
+.plan-row-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: -.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.plan-row-title:hover { color: var(--teal-tag); }
+
+.row-dropped { opacity: .5; }
+.row-dropped .plan-row-title {
+  text-decoration: line-through;
+  text-decoration-color: var(--faint2);
+  color: var(--muted);
+}
+
+/* ── Milestone tag ───────────────────────────────────────────── */
+.milestone-tag {
+  flex: none;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  background: var(--surface-faint);
+  border-radius: 4px;
+  padding: 2px 7px;
+}
+
+/* ── Progress bar (row + card) ───────────────────────────────── */
+.plan-progress { flex: none; display: inline-flex; align-items: center; gap: 8px; }
+.plan-progress-track {
+  width: 64px; height: 4px; border-radius: 2px;
+  background: var(--plan-track); overflow: hidden;
+}
+.plan-progress-fill { display: block; height: 100%; background: var(--plan-doing); border-radius: 2px; }
+.progress-count { font-family: var(--mono); font-size: 11px; color: var(--faint); }
+
+/* ── Status label (right-aligned on rows) ────────────────────── */
+.plan-status-label {
+  flex: none;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .04em;
+  color: var(--faint);
+  min-width: 58px;
+  text-align: right;
+}
+.plan-status-label.is-doing   { color: var(--plan-doing); }
+.plan-status-label.is-blocked { color: var(--plan-blocked); }
+
+/* ── In-flight cards (now view) ──────────────────────────────── */
+.plan-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+.plan-card {
+  border: 1px solid var(--border-soft);
+  border-left: 2px solid var(--plan-doing);
+  border-radius: var(--radius);
+  background: var(--surface-faint);
+  padding: 16px 18px;
+}
+.plan-card-eyebrow {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 10.5px;
+  text-transform: uppercase; letter-spacing: .12em;
+  color: var(--plan-doing);
+  margin-bottom: 8px;
+}
+.plan-card-title {
+  display: block;
+  font-family: var(--display);
+  font-size: 16px; font-weight: 500;
+  color: var(--text); letter-spacing: -.01em;
+}
+.plan-card-title:hover { color: var(--teal-tag); }
+
+.detail-progress { display: flex; align-items: center; gap: 10px; margin: 12px 0; }
+.detail-progress .plan-progress-track { width: 140px; }
+
+.plan-body { max-width: none; }
+.plan-card-body { margin-top: 6px; }
+.plan-card-body p, .plan-card-body li { font-size: 14px; }
+
+/* GFM task lists rendered from plan bodies */
+.plan-body ul.contains-task-list { list-style: none; padding-left: 0; }
+.plan-body .task-list-item { display: flex; align-items: baseline; gap: 8px; }
+.plan-body .task-list-item input[type="checkbox"] { margin: 0; accent-color: var(--teal); }
+.plan-body .task-list-item:has(input:checked) {
+  color: var(--faint);
+  text-decoration: line-through;
+  text-decoration-color: var(--faint2);
+}
+
+/* ── Blocked cards (now view) ────────────────────────────────── */
+.blocked-cards { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+.blocked-card {
+  border: 1px solid var(--border-soft);
+  border-left: 2px solid var(--plan-blocked);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+.blocked-card-head { display: flex; align-items: center; gap: 10px; }
+.blocked-q { display: flex; gap: 10px; margin-top: 10px; padding: 10px 12px; background: var(--surface-faint); border-radius: 7px; }
+.q-marker { flex: none; font-family: var(--mono); font-weight: 600; color: var(--plan-blocked); }
+.q-text-inline { font-size: 14px; color: var(--soft); line-height: 1.5; }
+.q-meta-inline { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-top: 3px; }
+
+/* ── Now-view footer (two columns) ───────────────────────────── */
+.now-footer { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+
+/* ── Plan detail page ────────────────────────────────────────── */
+.plan-detail { max-width: 660px; }
+.plan-detail-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.plan-detail-head .detail-title { margin-bottom: 0; }
+.plan-detail.is-dropped { opacity: .72; }
+.plan-detail.is-dropped .detail-title {
+  text-decoration: line-through;
+  text-decoration-color: var(--faint2);
+  color: var(--muted);
+}
+
+.callout-blocked {
+  border-color: var(--plan-blocked-bd);
+  background: var(--plan-blocked-tint);
+  color: var(--plan-blocked);
+}
+.callout-blocked a { color: var(--text); text-decoration: underline; }
+
+.detail-sub-label {
+  font-family: var(--mono); font-size: 11px;
+  text-transform: uppercase; letter-spacing: .08em;
+  color: var(--faint); margin: 22px 0 6px;
+}
+.dropped-reason { margin-top: 20px; padding: 12px 16px; background: var(--surface-faint); border-radius: var(--radius); }
+.dropped-reason p { font-size: 14px; color: var(--soft); line-height: 1.55; }
+
+.cross-refs { margin-top: 26px; }
+.ref-list { list-style: none; margin-top: 10px; }
+.ref-list li {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid var(--border-soft);
+  font-size: 14px;
+}
+.ref-kind {
+  font-family: var(--mono); font-size: 11px;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--faint); min-width: 84px;
+}
+.ref-list a { color: var(--teal-tag); }
+.ref-list a:hover { text-decoration: underline; }
+.ref-text { color: var(--soft); }
+
+/* ── Plan responsive ─────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .plan-cards, .now-footer { grid-template-columns: 1fr; }
+  .plan-row-title { white-space: normal; }
+}

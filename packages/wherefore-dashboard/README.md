@@ -100,6 +100,14 @@ See the [hosting guide](https://github.com/DustinVK/wherefore/blob/main/packages
 
 The CLI reads your `wherefore/` directory in place and emits a static [Astro](https://astro.build) site. Your decision log stays as plain markdown in your repo; the dashboard is just a renderer you point at it.
 
+It renders these views:
+
+- **Now** (home) -- where the project stands: plan items in flight, anything blocked on an open question, what is queued up next, plus open questions and recent decisions.
+- **Log** -- the decision log (`wherefore/log/`), filterable by area, topic, and status, with a reading view per entry.
+- **Plan** -- forward-looking work items (`wherefore/plan/P-*.md`) grouped by status (doing / blocked / todo / done, with dropped items kept behind a toggle). `blocked` is derived: an item is blocked while it points at a still-open question. Each item has a detail page with its checklist progress and links to the decisions and questions it references.
+- **Questions** -- open and resolved questions (`wherefore/questions/`).
+- **Tags** -- the area and topic vocabulary with per-tag decision counts.
+
 The `wherefore/` directory is produced by the [wherefore plugin](https://github.com/DustinVK/wherefore) for Claude Code.
 
 ## License

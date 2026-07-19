@@ -1,71 +1,178 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import Base from '../layouts/Base.astro';
+import PlanRow from '../components/PlanRow.astro';
+import { taskProgress, isBlocked } from '../lib/plan';
 
-const allEntries  = await getCollection('log');
+const allPlan = await getCollection('plan');
+const allLog = await getCollection('log');
 const allQuestions = await getCollection('questions');
 
-const activeEntries = allEntries.filter(e => e.data.status === 'active');
+const questionStatusById = new Map(allQuestions.map(q => [q.id, q.data.status]));
+const questionById = new Map(allQuestions.map(q => [q.id, q]));
+
+const cards = allPlan.map(p => ({
+  entry: p,
+  id: p.id,
+  data: p.data,
+  blocked: isBlocked({ status: p.data.status, questionRef: p.data.questionRef }, questionStatusById),
+  progress: taskProgress(p.body ?? ''),
+}));
+type Card = (typeof cards)[number];
+
+const recency = (c: Card) => c.data.updated ?? c.data.created;
+const byRecency = (a: Card, b: Card) => recency(b).localeCompare(recency(a));
+
+const inFlight = cards.filter(c => c.data.status === 'doing' && !c.blocked).sort(byRecency);
+const blocked  = cards.filter(c => c.blocked).sort(byRecency);
+const upNext   = cards.filter(c => c.data.status === 'todo' && !c.blocked).sort(byRecency);
+
+// The checklist is the live todo list for an in-flight item, so render its body.
+const inFlightRendered = await Promise.all(
+  inFlight.map(async c => ({ ...c, Content: (await render(c.entry)).Content })),
+);
+
 const openQuestions = allQuestions
   .filter(q => q.data.status === 'open')
   .sort((a, b) => b.data.asked_date.localeCompare(a.data.asked_date));
 
-const recentEntries = activeEntries
+const recentDecisions = allLog
+  .filter(e => e.data.status === 'active')
   .sort((a, b) => b.data.date.localeCompare(a.data.date))
   .slice(0, 5);
-
-const retiredCount = allEntries.filter(e => e.data.status !== 'active').length;
-const parts = [
-  `${activeEntries.length} decisions`,
-  retiredCount > 0 ? `${retiredCount} retired` : null,
-  `${openQuestions.length} open questions`,
-].filter(Boolean);
 ---
 <Base>
-  <p class="summary-line">{parts.join(' · ')}</p>
-
-  <div class="page-section">
-    <div class="page-section-head">
-      Recent decisions
-      <a href="/log">All decisions &rarr;</a>
-    </div>
-    {recentEntries.length === 0 ? (
-      <p class="empty">No entries yet.</p>
-    ) : (
-      <ul class="entry-list">
-        {recentEntries.map(e => (
-          <li class="row">
-            <a class="entry-title" href={`/log/${e.id}`}>{e.data.title}</a>
-            <div class="entry-meta">
-              <span class="dt">{e.data.date}</span>
-              {e.data.areas.map(a => <span class="tag tag-area">{a}</span>)}
-              {e.data.topics.map(t => <span class="tag tag-topic">{t}</span>)}
-            </div>
-          </li>
-        ))}
-      </ul>
-    )}
+  <div class="count-strip now-counts">
+    <span class="count"><span class="status-dot is-doing"></span><b>{inFlight.length}</b> in flight</span>
+    <span class="count"><span class="status-dot is-blocked"></span><b>{blocked.length}</b> blocked</span>
+    <span class="count"><span class="status-dot is-todo"></span><b>{upNext.length}</b> queued</span>
+    <span class="count"><span class="status-dot is-open"></span><b>{openQuestions.length}</b> open</span>
   </div>
 
-  <div class="page-section">
-    <div class="page-section-head">
-      Open questions
-      <a href="/questions">All questions &rarr;</a>
+  {inFlight.length > 0 && (
+    <div class="page-section">
+      <div class="page-section-head">
+        In flight
+        <a href="/plan">All plan items &rarr;</a>
+      </div>
+      <div class="plan-cards">
+        {inFlightRendered.map(c => {
+          const { Content } = c;
+          const pct = c.progress.total > 0 ? Math.round((c.progress.done / c.progress.total) * 100) : 0;
+          return (
+            <article class="plan-card">
+              <div class="plan-card-eyebrow">
+                <span>doing</span>
+                {c.data.milestone && <span class="milestone-tag">{c.data.milestone}</span>}
+              </div>
+              <a class="plan-card-title" href={`/plan/${c.id}`}>{c.data.title}</a>
+              {c.progress.total > 0 && (
+                <div class="detail-progress">
+                  <span class="plan-progress-track"><span class="plan-progress-fill" style={`width:${pct}%`}></span></span>
+                  <span class="progress-count">{c.progress.done} of {c.progress.total}</span>
+                </div>
+              )}
+              <div class="entry-body plan-body plan-card-body"><Content /></div>
+            </article>
+          );
+        })}
+      </div>
     </div>
-    {openQuestions.length === 0 ? (
-      <p class="empty">No open questions.</p>
-    ) : (
-      <ul class="question-list">
-        {openQuestions.map(q => (
-          <li class="row">
-            <div class="q-id-date">{q.id.toUpperCase()} · {q.data.asked_date}</div>
-            <span class="q-text">{q.data.question}</span>
-            <div class="entry-meta">
-              {q.data.areas.map(a => <span class="tag tag-area">{a}</span>)}
+  )}
+
+  {blocked.length > 0 && (
+    <div class="page-section">
+      <div class="page-section-head">Blocked</div>
+      <div class="blocked-cards">
+        {blocked.map(c => {
+          const q = c.data.questionRef ? questionById.get(c.data.questionRef) : null;
+          return (
+            <div class="blocked-card">
+              <div class="blocked-card-head">
+                <span class="status-dot is-blocked" aria-hidden="true"></span>
+                <a class="plan-card-title" href={`/plan/${c.id}`}>{c.data.title}</a>
+                {c.data.milestone && <span class="milestone-tag">{c.data.milestone}</span>}
+              </div>
+              {q && (
+                <div class="blocked-q">
+                  <span class="q-marker" aria-hidden="true">?</span>
+                  <div>
+                    <span class="q-text-inline">{q.data.question}</span>
+                    <div class="q-meta-inline">{c.data.questionRef} &middot; open</div>
+                  </div>
+                </div>
+              )}
             </div>
-          </li>
+          );
+        })}
+      </div>
+    </div>
+  )}
+
+  {upNext.length > 0 && (
+    <div class="page-section">
+      <div class="page-section-head">Up next</div>
+      <ul class="plan-list">
+        {upNext.map(c => (
+          <PlanRow
+            id={c.id}
+            status={c.data.status}
+            blocked={c.blocked}
+            title={c.data.title}
+            area={c.data.area}
+            milestone={c.data.milestone}
+            done={c.progress.done}
+            total={c.progress.total}
+          />
         ))}
       </ul>
-    )}
+    </div>
+  )}
+
+  <div class="now-footer">
+    <div class="page-section">
+      <div class="page-section-head">
+        Open questions
+        <a href="/questions">All questions &rarr;</a>
+      </div>
+      {openQuestions.length === 0 ? (
+        <p class="empty">No open questions.</p>
+      ) : (
+        <ul class="question-list">
+          {openQuestions.map(q => (
+            <li class="row">
+              <div class="q-id-date">{q.id.toUpperCase()} &middot; {q.data.asked_date}</div>
+              <span class="q-text">{q.data.question}</span>
+              <div class="entry-meta">
+                {q.data.areas.map(a => <span class="tag tag-area">{a}</span>)}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+
+    <div class="page-section">
+      <div class="page-section-head">
+        Recently decided
+        <a href="/log">All decisions &rarr;</a>
+      </div>
+      {recentDecisions.length === 0 ? (
+        <p class="empty">No decisions yet.</p>
+      ) : (
+        <ul class="entry-list">
+          {recentDecisions.map(e => (
+            <li class="row">
+              <a class="entry-title" href={`/log/${e.id}`}>{e.data.title}</a>
+              <div class="entry-meta">
+                <span class="dt">{e.data.date}</span>
+                {e.data.areas.map(a => <span class="tag tag-area">{a}</span>)}
+                {e.data.topics.map(t => <span class="tag tag-topic">{t}</span>)}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   </div>
 </Base>

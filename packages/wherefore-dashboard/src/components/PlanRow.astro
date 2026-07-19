@@ -1,0 +1,39 @@
+---
+// The plan collection's list-row unit: status dot, title, optional milestone tag,
+// slim progress bar + n/m, right-aligned status label. Reused across the /plan
+// browse sections and the now view's "Up next" list. `blocked` is derived (an
+// open question_ref), so it overrides the dot and label without being a status.
+interface Props {
+  id: string;
+  status: 'todo' | 'doing' | 'done' | 'dropped';
+  blocked: boolean;
+  title: string;
+  area: string | null;
+  milestone: string | null;
+  done: number;
+  total: number;
+}
+
+const { id, status, blocked, title, area, milestone, done, total } = Astro.props;
+const dotClass = blocked ? 'is-blocked' : `is-${status}`;
+const label = blocked ? 'blocked' : status;
+const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+---
+<li
+  class:list={['plan-row', status === 'dropped' && 'row-dropped']}
+  data-status={status}
+  data-blocked={blocked ? 'true' : 'false'}
+  data-area={area ?? ''}
+  data-title={title.toLowerCase()}
+>
+  <span class:list={['status-dot', dotClass]} aria-hidden="true"></span>
+  <a class="plan-row-title" href={`/plan/${id}`}>{title}</a>
+  {milestone && <span class="milestone-tag">{milestone}</span>}
+  {total > 0 && (
+    <span class="plan-progress" title={`${done} of ${total} done`}>
+      <span class="plan-progress-track"><span class="plan-progress-fill" style={`width:${pct}%`}></span></span>
+      <span class="progress-count">{done}/{total}</span>
+    </span>
+  )}
+  <span class:list={['plan-status-label', dotClass]}>{label}</span>
+</li>
