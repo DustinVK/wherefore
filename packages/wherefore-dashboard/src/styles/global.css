@@ -1055,14 +1055,54 @@ html[data-theme="light"] {
 .plan-card-body { margin-top: 6px; }
 .plan-card-body p, .plan-card-body li { font-size: 14px; }
 
-/* GFM task lists rendered from plan bodies */
+/* GFM task lists rendered from plan bodies.
+   Each item is a normal block with a hanging indent and the checkbox in the left
+   margin, so text, inline code, and links flow as one wrapped line. (A flex row here
+   makes every text run and code chip its own shrinking flex item and shreds the step
+   into columns.) */
 .plan-body ul.contains-task-list { list-style: none; padding-left: 0; }
-.plan-body .task-list-item { display: flex; align-items: baseline; gap: 8px; }
-.plan-body .task-list-item input[type="checkbox"] { margin: 0; accent-color: var(--teal); }
+.plan-body ul.contains-task-list ul.contains-task-list { padding-left: 1.5em; margin: 4px 0; }
+.plan-body .task-list-item {
+  display: block;
+  position: relative;
+  padding-left: 1.7em;
+  margin: 7px 0;
+  line-height: 1.6;
+}
+.plan-body .task-list-item input[type="checkbox"] {
+  position: absolute;
+  left: 0;
+  top: 0.34em;
+  margin: 0;
+  accent-color: var(--teal);
+}
 .plan-body .task-list-item:has(input:checked) {
   color: var(--faint);
   text-decoration: line-through;
   text-decoration-color: var(--faint2);
+}
+
+/* Calmer inline code inside plan bodies: neutral, not the teal accent, so a step
+   dense with code spans stays scannable. Later than .entry-body code, so it wins. */
+.plan-body code {
+  color: var(--soft);
+  background: var(--surface-faint);
+  font-size: 0.86em;
+  padding: 0.5px 4px;
+  border-radius: 4px;
+}
+
+/* "Checklist" divider above the task list, detail page only (scoped off the compact
+   now-view cards and off nested lists; shows only when a task list exists). */
+.plan-detail .plan-body > ul.contains-task-list::before {
+  content: "Checklist";
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--faint);
+  margin: 4px 0 10px;
 }
 
 /* ── Blocked cards (now view) ────────────────────────────────── */
