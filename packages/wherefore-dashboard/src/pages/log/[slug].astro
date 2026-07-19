@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import { parseEntry, renderInline } from '../../lib/entry-sections';
+import { buildMdLinkMap } from '../../lib/md-links.mjs';
 
 export async function getStaticPaths() {
   const entries = await getCollection('log');
@@ -17,6 +18,12 @@ const replacement = supersededBy ? allEntries.find(e => e.id === supersededBy) ?
 const prev        = supersedes   ? allEntries.find(e => e.id === supersedes)   ?? null : null;
 
 const sections = parseEntry(entry.body ?? '');
+
+// Log bodies render through renderInline (not the markdown pipeline), so rewrite
+// their relative .md cross-links to routes here with the same map the rehype
+// plugin uses on the other pages.
+const mdLinkMap = buildMdLinkMap(process.env.WHEREFORE_SRC);
+const md = (t: string) => renderInline(t, mdLinkMap);
 
 const statusClass =
   status === 'superseded' ? 'is-superseded' :
@@ -65,7 +72,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
     {sections.summary.length > 0 && (
       <div class="wf-summary">
-        {sections.summary.map(p => <p set:html={renderInline(p)} />)}
+        {sections.summary.map(p => <p set:html={md(p)} />)}
       </div>
     )}
 
@@ -76,8 +83,8 @@ const pad = (n: number) => String(n).padStart(2, '0');
           <div class="wf-decision">
             <span class="n">{pad(i + 1)}</span>
             <div>
-              <p class="verdict" set:html={renderInline(d.verdict)} />
-              {d.detail && <p class="detail" set:html={renderInline(d.detail)} />}
+              <p class="verdict" set:html={md(d.verdict)} />
+              {d.detail && <p class="detail" set:html={md(d.detail)} />}
             </div>
           </div>
         ))}
@@ -87,7 +94,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
     {sections.why.length > 0 && (
       <>
         <div class="wf-label">Why</div>
-        {sections.why.map(p => <p class="wf-why" set:html={renderInline(p)} />)}
+        {sections.why.map(p => <p class="wf-why" set:html={md(p)} />)}
       </>
     )}
 
@@ -100,7 +107,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
               <span class="tag">Rejected</span>
               <div class="txt">
                 <b>{a.option}</b>
-                {a.reason && <> <span set:html={renderInline(a.reason)} /></>}
+                {a.reason && <> <span set:html={md(a.reason)} /></>}
               </div>
             </div>
           ))}
@@ -115,7 +122,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
           {sections.questions.map(q => (
             <div class="wf-q">
               {q.id && <span class="id">{q.id}</span>}
-              <span class="txt" set:html={renderInline(q.text)} />
+              <span class="txt" set:html={md(q.text)} />
             </div>
           ))}
         </div>

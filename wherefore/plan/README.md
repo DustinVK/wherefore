@@ -37,7 +37,8 @@ superseded / obsolete here, and do not put todo / doing / done / dropped on deci
 
 Body: freeform. The `slate` skill breaks the work into `- [ ]` checkboxes by default
 (steps concrete enough to check off); prose stays valid, and older items may be
-prose-only.
+prose-only. References to other items in the body use a relative Markdown link (see
+Linking conventions below).
 
 ## Status vocabulary
 
@@ -50,6 +51,12 @@ to an open question. It never lives in frontmatter. An item carrying `answers` (
 investigating a question) is not blocked; `answers` is the opposite relationship.
 
 ## Linking conventions
+
+The frontmatter refs below stay bare IDs/slugs. In the BODY, link to another item with a
+relative Markdown link, ID-first in the text: `[P-005: CI validator](P-005-ci-schema-validator.md)`
+(same directory) or `[Q-007: token store](../questions/Q-007-token-store.md)` (sibling
+collection). Never a bare slug or a `[[wikilink]]`: those render as literal text on GitHub
+and most editors.
 
 - `milestone`: a single milestone ID (`M1`) defined in `wherefore/ROADMAP.md`. One-way:
   the item points up at the milestone.

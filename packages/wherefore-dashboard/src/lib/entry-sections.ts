@@ -4,6 +4,8 @@
 //   ## Summary / ## Decisions / outcomes / ## Why /
 //   ## Alternatives considered / ## Open questions / follow-ups
 
+import { rewriteMdHref } from './md-links.mjs';
+
 export interface Decision { verdict: string; detail: string; }
 export interface Alternative { option: string; reason: string; }
 export interface OpenQuestion { id: string | null; text: string; }
@@ -113,14 +115,23 @@ export function parseEntry(body: string): EntrySections {
  * code spans, links, and bold. Used via set:html so authored `code`, links, and
  * **emphasis** don't leak through as literal markup. Content is repo-trusted.
  */
-export function renderInline(text: string): string {
+export function renderInline(text: string, mdLinkMap?: Map<string, string>): string {
   if (!text) return '';
   let h = text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
-  h = h.replace(/`([^`]+)`/g, (_m, c) => `<code>${c}</code>`);
-  h = h.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_m, t, u) => `<a href="${u}">${t}</a>`);
+  // Pull code spans out to placeholders first, so link/bold syntax shown INSIDE a
+  // code span (e.g. a `[label](path.md)` example) is not reprocessed into a real
+  // link, matching how a real Markdown parser protects code spans.
+  const codes: string[] = [];
+  h = h.replace(/`([^`]+)`/g, (_m, c) => {
+    codes.push(`<code>${c}</code>`);
+    return `\u0000${codes.length - 1}\u0000`;
+  });
+  h = h.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,
+    (_m, t, u) => `<a href="${rewriteMdHref(u, mdLinkMap)}">${t}</a>`);
   h = h.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/__([^_]+)__/g, '<b>$1</b>');
+  h = h.replace(/\u0000(\d+)\u0000/g, (_m, i) => codes[Number(i)]);
   return h;
 }

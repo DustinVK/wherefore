@@ -243,6 +243,22 @@ test('plan detail: dropped item shown (not hidden) with reason and retired-by li
   assert.equal(d.querySelector('.ref-list a').getAttribute('href'), '/log/2026-01-03-replacement-example');
 });
 
+// ---- cross-link rewriting (.md links -> routes) ----------------------------
+
+test('plan body: relative .md cross-link is rewritten to a route (rehype path)', () => {
+  const d = parse('plan/P-002/index.html');
+  const link = d.querySelector('.plan-body a[href="/plan/P-001"]');
+  assert.ok(link, 'the [P-001](P-001-...md) body link resolves to /plan/P-001');
+  assert.match(text(link), /P-001/);
+});
+
+test('log body: relative .md cross-link is rewritten to a route (renderInline path)', () => {
+  const d = parse('log/2026-01-01-active-example/index.html');
+  const link = d.querySelector('.wf-qs a');
+  assert.ok(link, 'the "See also" body link is present');
+  assert.equal(link.getAttribute('href'), '/log/2026-01-03-replacement-example');
+});
+
 // ---- client-side filters (scripts executed by jsdom) -----------------------
 
 test('questions filter: resolved tab and no-results search', () => {

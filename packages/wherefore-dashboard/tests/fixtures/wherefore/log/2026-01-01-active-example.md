@@ -31,3 +31,4 @@ later context.
 ## Open questions / follow-ups
 
 - Q-001: Should we rate-limit per user or per IP?
+- See also [2026-01-03-replacement-example: the replacement](2026-01-03-replacement-example.md)

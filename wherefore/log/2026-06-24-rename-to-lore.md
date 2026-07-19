@@ -39,4 +39,4 @@ being created, because renaming after installs breaks the install string.
 - ADR in the name. Rejected: see 2026-06-24-adr-positioning.
 
 ## Open questions / follow-ups
-- See also: 2026-06-24-adr-positioning.
+- See also: [2026-06-24-adr-positioning](2026-06-24-adr-positioning.md).

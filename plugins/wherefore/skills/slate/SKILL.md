@@ -141,6 +141,11 @@ done
    for specifics ("what are the actual steps?") rather than writing filler. Never
    bulk-generate items from a vague prompt: a plan item is a commitment, and
    manufacturing commitments in bulk is the failure this collection exists to avoid.
+   When a checkbox or prose references another wherefore item, link it with a relative
+   Markdown link, e.g. `- [ ] fold in [P-005: CI validator](P-005-ci-schema-validator.md)`
+   or `[Q-007: token store](../questions/Q-007-token-store.md)`, never a bare slug or a
+   `[[wikilink]]` (see AGENTS.md "Linking"). Frontmatter refs (`decision_ref`,
+   `question_ref`, `milestone`, `answers`) stay bare, not links.
 3. Set frontmatter: `id`, `title`, `status: todo`, `created` today. Add `area`/`topics`
    from `topics.md` if the item has them; add `milestone`, `question_ref`, or
    `decision_ref` if the user gives them. Do not set `updated` on a brand-new item.

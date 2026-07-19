@@ -169,6 +169,28 @@ Body: break the work into `- [ ]` checkboxes concrete enough to check off; prose
   `active`/`superseded`/`obsolete` on a plan item, or `todo`/`doing`/`done`/`dropped` on a
   decision. Retiring or replacing a decision is a supersession on the decision, not a plan edit.
 
+## Linking
+
+When a body (an entry, a question, or a plan item) refers to another wherefore item,
+write a standard relative Markdown link to that item's file, never a bare slug and never
+a `[[wikilink]]` (wikilinks render as literal text on GitHub and most editors). Start the
+link text with the target's ID so the raw file stays greppable, then a short label:
+
+```markdown
+See [P-004: verified brokers](P-004-m9-populate-verified-brokers.md) for the broker work.
+Blocked by [Q-007: token store](../questions/Q-007-token-store.md).
+Supersedes [2026-07-03-plan-directory](../log/2026-07-03-plan-directory.md).
+```
+
+- The path is relative to the file you are writing: same directory is `NAME.md`; a sibling
+  collection is `../log/NAME.md`, `../questions/NAME.md`, or `../plan/NAME.md`.
+- Link text is the target ID (`P-NNN`, `Q-NNN`, or a `YYYY-MM-DD-slug`) then `: short label`.
+- This is for body prose only. Frontmatter refs (`decision_ref`, `question_ref`,
+  `supersedes`, `superseded_by`, `asked_slug`, `resolution_slug`) stay bare IDs/slugs.
+- Standard Markdown links render as real links everywhere: GitHub, Obsidian, editors, and
+  the dashboard. Obsidian users: turn off Files & Links -> "Use [[Wikilinks]]" so Obsidian
+  writes this same portable format (it resolves Markdown links either way).
+
 ## Conventions
 
 - All frontmatter keys use underscore style (superseded_by, superseded_date,
