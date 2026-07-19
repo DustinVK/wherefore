@@ -65,9 +65,9 @@ Never delete anything under a `wherefore/` data dir. Retire, do not delete.
 4. **Add a one-line banner** as the first body line of the target entry, after
    the closing `---` of the frontmatter, before `## Summary`. No emoji.
 
-   Superseded:
+   Superseded (the pointer is a relative Markdown link, per AGENTS.md "Linking"):
    ```
-   SUPERSEDED YYYY-MM-DD -> see <new-slug>. Kept for history, not current.
+   SUPERSEDED YYYY-MM-DD -> see [<new-slug>](<new-slug>.md). Kept for history, not current.
    ```
 
    Obsolete:

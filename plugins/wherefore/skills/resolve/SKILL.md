@@ -66,8 +66,9 @@ summary and move detail into a `## Resolution` body section. `status` and
 
 4. **Update the source wherefore entry (if applicable).** If the resolution came from
    a specific wherefore entry, open `wherefore/log/<slug>.md` and add a note in its
-   "Open questions / follow-ups" section next to the relevant item:
-   `- Q-042: <question text> (resolved, see wherefore/questions/Q-042-<slug>.md)`
+   "Open questions / follow-ups" section next to the relevant item, linking the question
+   with a relative Markdown link (per AGENTS.md "Linking"):
+   `- Q-042: <question text> (resolved, see [Q-042](../questions/Q-042-<slug>.md))`
 
 5. **Report back.** Show:
    - The question text and its ID

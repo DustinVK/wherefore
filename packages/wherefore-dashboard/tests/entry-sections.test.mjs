@@ -68,6 +68,32 @@ test('renderInline escapes HTML then renders code, links, and bold', () => {
   assert.equal(renderInline('**bold** and __also__'), '<b>bold</b> and <b>also</b>');
 });
 
+test('renderInline rewrites relative .md links when given a map', () => {
+  const map = new Map([['2026-01-03-replacement-example.md', '/log/2026-01-03-replacement-example']]);
+  assert.equal(
+    renderInline('see [it](2026-01-03-replacement-example.md)', map),
+    'see <a href="/log/2026-01-03-replacement-example">it</a>'
+  );
+  // Without a map, the authored link is left as-is.
+  assert.equal(
+    renderInline('see [it](2026-01-03-replacement-example.md)'),
+    'see <a href="2026-01-03-replacement-example.md">it</a>'
+  );
+});
+
+test('renderInline protects link syntax shown inside a code span', () => {
+  // A `[label](path.md)` example in backticks stays literal, not a real <a>.
+  assert.equal(
+    renderInline('use `[P-004: x](P-004-x.md)` here'),
+    'use <code>[P-004: x](P-004-x.md)</code> here'
+  );
+  // Numbers in surrounding prose are not mistaken for code-span placeholders.
+  assert.equal(
+    renderInline('at step 3 run `x` then step 4'),
+    'at step 3 run <code>x</code> then step 4'
+  );
+});
+
 test('parseEntry drops "None" items and structures every section', () => {
   const body = [
     '## Summary',

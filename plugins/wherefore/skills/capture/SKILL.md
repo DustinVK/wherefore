@@ -117,7 +117,7 @@ scalar to a one-line summary and move the detail into a body section.
 
 1. Get the source. A summary, or raw pasted discussion. If raw, distill it: extract decisions and rationale, drop the chatter.
 
-2. One entry or many? Split into one file per thread when threads are independently queryable: different areas, different stories, and reversible without affecting each other. Keep one file when causally linked (one decision led to or constrained another). When splitting, run each thread through the whole workflow and cross-link companions in each entry's Open questions section ("See also: 2026-06-24-foo"). Report how many files and why.
+2. One entry or many? Split into one file per thread when threads are independently queryable: different areas, different stories, and reversible without affecting each other. Keep one file when causally linked (one decision led to or constrained another). When splitting, run each thread through the whole workflow and cross-link companions in each entry's Open questions section with a relative Markdown link, e.g. `See also [2026-06-24-foo: title](2026-06-24-foo.md)` (same directory for log-to-log). Any in-body reference to another item uses this Markdown-link form, never a bare slug or a `[[wikilink]]`; see AGENTS.md "Linking". Report how many files and why.
 
 3. Date. Default to today. Use a stated date only if the user gives one ("yesterday's huddle").
 
@@ -142,7 +142,7 @@ scalar to a one-line summary and move the detail into a body section.
    On a confirmed replacement:
     - New entry frontmatter: `supersedes: <old-slug>`.
     - Old entry frontmatter: `status: superseded`, `superseded_by: <new-slug>`, `superseded_date: YYYY-MM-DD`.
-    - Old entry first body line (after frontmatter, before `## Summary`): `SUPERSEDED YYYY-MM-DD -> see <new-slug>. Kept for history, not current.`
+    - Old entry first body line (after frontmatter, before `## Summary`): `SUPERSEDED YYYY-MM-DD -> see [<new-slug>](<new-slug>.md). Kept for history, not current.` (relative Markdown link, per AGENTS.md "Linking").
 
 8. Write `wherefore/log/YYYY-MM-DD-short-slug.md`. Slug short, lowercase, hyphenated, recognizable (`oauth-token-refresh`, not `discussion-about-the-auth-stuff`). If the name exists, add a short suffix; never overwrite.
 

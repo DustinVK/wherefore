@@ -36,4 +36,4 @@ and supersession bookkeeping, so the log actually gets maintained.
 - ADR in the product name. Rejected: caps the concept at "an ADR tool".
 
 ## Open questions / follow-ups
-- See also: 2026-06-24-rename-to-lore (the naming side of the same instinct).
+- See also: [2026-06-24-rename-to-lore](2026-06-24-rename-to-lore.md) (the naming side of the same instinct).

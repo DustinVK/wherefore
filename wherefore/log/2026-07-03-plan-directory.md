@@ -37,4 +37,4 @@ actually used.
 
 ## Open questions / follow-ups
 - None. Rendering plan/ in the dashboard is out of scope until entries exist.
-- See also: 2026-07-03-wherefore-cli-and-multi-agent-skills.
+- See also: [2026-07-03-wherefore-cli-and-multi-agent-skills](2026-07-03-wherefore-cli-and-multi-agent-skills.md).

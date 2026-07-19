@@ -31,4 +31,4 @@ Both mechanisms work, which is the evidence Q-008 was waiting on.
 
 ## Open questions / follow-ups
 - Q-008 stays open: ship per-agent skills, or rely solely on the AGENTS.md floor. This session is evidence that both work, not a decision on which to keep.
-- See also: 2026-07-04-init-skills-on-by-default and 2026-06-25-agents-md-cross-tool.
+- See also: [2026-07-04-init-skills-on-by-default](2026-07-04-init-skills-on-by-default.md) and [2026-06-25-agents-md-cross-tool](2026-06-25-agents-md-cross-tool.md).
