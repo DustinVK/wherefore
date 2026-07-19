@@ -55,4 +55,43 @@ const questions = defineCollection({
   }),
 });
 
-export const collections = { log, questions };
+const plan = defineCollection({
+  // Glob P-*.md (not *.md) so plan/README.md and any other non-item doc are skipped.
+  // ID derives from the id: frontmatter (P-NNN is authoritative), same as questions.
+  loader: glob({
+    pattern: 'P-*.md',
+    base: `${SRC}/plan`,
+    generateId: ({ entry, data }) =>
+      data.id ? String(data.id) : entry.replace(/\.md$/, ''),
+  }),
+  schema: z.object({
+    title: z.string(),
+    status: z.enum(['todo', 'doing', 'done', 'dropped']).default('todo'),
+    created: yamlDate,
+    updated: yamlDateNullable,
+    area: z.string().nullable().default(null),   // single area, unlike log/questions' areas[]
+    topics: z.array(z.string()).default([]),
+    milestone: z.string().nullable().default(null),
+    decision_ref: z.string().nullable().default(null),
+    question_ref: z.string().nullable().default(null),
+    answers: z.string().nullable().default(null),
+    dropped_reason: z.string().nullable().default(null),
+  }).transform(d => ({
+    title: d.title,
+    status: d.status,
+    created: d.created,
+    updated: d.updated,
+    area: d.area || null,
+    topics: d.topics,
+    milestone: d.milestone || null,
+    // decision_ref may be a single slug or a comma-separated list, mirroring supersedes.
+    decisionRefs: d.decision_ref
+      ? d.decision_ref.split(',').map(s => s.trim()).filter(Boolean)
+      : [],
+    questionRef: d.question_ref || null,
+    answers: d.answers || null,
+    droppedReason: d.dropped_reason || null,
+  })),
+});
+
+export const collections = { log, questions, plan };

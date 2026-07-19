@@ -1,9 +1,9 @@
 ---
 id: P-001
 title: Ship 0.1.1 patch
-status: doing
+status: done
 created: 2026-06-20
-updated: 2026-07-03
+updated: 2026-07-19
 area: dashboard
 topics: [release]
 ---

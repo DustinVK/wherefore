@@ -1,0 +1,108 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { taskProgress, isBlocked } from '../../lib/plan';
+
+export async function getStaticPaths() {
+  const items = await getCollection('plan');
+  return items.map(e => ({ params: { slug: e.id }, props: { entry: e } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+
+const allLog = await getCollection('log');
+const allQuestions = await getCollection('questions');
+const logTitleById = new Map(allLog.map(e => [e.id, e.data.title]));
+const questionById = new Map(allQuestions.map(q => [q.id, q]));
+const questionStatusById = new Map(allQuestions.map(q => [q.id, q.data.status]));
+
+const d = entry.data;
+const blocked = isBlocked({ status: d.status, questionRef: d.questionRef }, questionStatusById);
+const progress = taskProgress(entry.body ?? '');
+const pct = progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0;
+
+const dotClass = blocked ? 'is-blocked' : `is-${d.status}`;
+const label = blocked ? 'blocked' : d.status;
+
+const decisions = d.decisionRefs.map(slug => ({ slug, title: logTitleById.get(slug) ?? slug }));
+const blockingQuestion = d.questionRef ? questionById.get(d.questionRef) ?? null : null;
+const answeredQuestion = d.answers ? questionById.get(d.answers) ?? null : null;
+const decisionLabel = d.status === 'dropped' ? 'Retired by' : 'Decision';
+---
+<Base pageTitle={entry.data.title}>
+  <a href="/plan" class="back-link"><span class="arrow">&larr;</span> back to plan</a>
+
+  {d.status === 'dropped' && (
+    <div class="callout callout-obs">
+      Dropped{d.updated ? ` on ${d.updated}` : ''}. Kept for history, not current.
+    </div>
+  )}
+
+  {blocked && (
+    <div class="callout callout-blocked">
+      Blocked on <a href="/questions">{d.questionRef}</a>{blockingQuestion ? `: ${blockingQuestion.data.question}` : ''}
+    </div>
+  )}
+
+  <article class:list={['plan-detail', d.status === 'dropped' && 'is-dropped']}>
+    <div class="plan-detail-head">
+      <span class:list={['status-dot', dotClass]} aria-hidden="true"></span>
+      <h1 class="detail-title">{entry.data.title}</h1>
+      <span class:list={['plan-status-label', dotClass]}>{label}</span>
+    </div>
+
+    <div class="detail-meta">
+      {d.area && <span class="tag tag-area">{d.area}</span>}
+      {d.topics.map(t => <span class="tag tag-topic">{t}</span>)}
+      {d.milestone && <span class="milestone-tag">{d.milestone}</span>}
+      <span class="dt">created {d.created}{d.updated ? ` · updated ${d.updated}` : ''}</span>
+    </div>
+
+    {progress.total > 0 && (
+      <div class="detail-progress">
+        <span class="plan-progress-track"><span class="plan-progress-fill" style={`width:${pct}%`}></span></span>
+        <span class="progress-count">{progress.done} of {progress.total} done</span>
+      </div>
+    )}
+
+    {entry.body?.trim() && (
+      <div class="entry-body plan-body"><Content /></div>
+    )}
+
+    {d.droppedReason && (
+      <div class="dropped-reason">
+        <div class="detail-sub-label">Dropped reason</div>
+        <p>{d.droppedReason}</p>
+      </div>
+    )}
+
+    {(decisions.length > 0 || blockingQuestion || answeredQuestion || d.questionRef || d.answers) && (
+      <div class="cross-refs">
+        <div class="page-section-head">References</div>
+        <ul class="ref-list">
+          {decisions.map(dec => (
+            <li>
+              <span class="ref-kind">{decisionLabel}</span>
+              <a href={`/log/${dec.slug}`}>{dec.title}</a>
+            </li>
+          ))}
+          {d.questionRef && (
+            <li>
+              <span class="ref-kind">Blocked by</span>
+              <a href="/questions">{d.questionRef}</a>
+              {blockingQuestion && <span class="ref-text">{blockingQuestion.data.question}</span>}
+            </li>
+          )}
+          {d.answers && (
+            <li>
+              <span class="ref-kind">Answers</span>
+              <a href="/questions">{d.answers}</a>
+              {answeredQuestion && <span class="ref-text">{answeredQuestion.data.question}</span>}
+            </li>
+          )}
+        </ul>
+      </div>
+    )}
+  </article>
+</Base>

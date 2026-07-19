@@ -38,9 +38,12 @@ test('build emits no duplicate-id warnings', () => {
 
 // ---- static render ---------------------------------------------------------
 
-test('index: summary math and active-only lists', () => {
+test('index (now view): counts and active/open-only footers', () => {
   const d = parse('index.html');
-  assert.equal(text(d.querySelector('.summary-line')), '2 decisions · 2 retired · 1 open questions');
+
+  // Header count strip: in flight (doing not blocked)=2, blocked=1, queued (todo)=1, open=1
+  const counts = [...d.querySelectorAll('.now-counts .count')].map(text);
+  assert.deepEqual(counts, ['2 in flight', '1 blocked', '1 queued', '1 open']);
 
   const titles = [...d.querySelectorAll('.entry-list .entry-title')].map(text);
   assert.ok(titles.includes('Active example decision'));
@@ -51,6 +54,22 @@ test('index: summary math and active-only lists', () => {
   const qids = [...d.querySelectorAll('.question-list .q-id-date')].map(text);
   assert.ok(qids.some((t) => t.startsWith('Q-001')), 'open question listed');
   assert.ok(!qids.some((t) => t.startsWith('Q-002')), 'resolved question must not be listed');
+});
+
+test('index (now view): in-flight cards and blocked card with inline question', () => {
+  const d = parse('index.html');
+
+  const cardTitles = [...d.querySelectorAll('.plan-card-title')].map(text);
+  assert.ok(cardTitles.includes('Wire up the checkout rate limiter'), 'doing item is in flight');
+  assert.ok(cardTitles.includes('Spike per-user vs per-IP limiting'), 'spike (answers) is in flight, not blocked');
+  assert.ok(cardTitles.includes('Choose the checkout rate-limit key'), 'blocked item shown in its own card');
+
+  const blockedCard = d.querySelector('.blocked-card');
+  assert.match(text(blockedCard), /Choose the checkout rate-limit key/);
+  assert.match(text(blockedCard.querySelector('.blocked-q')), /rate-limit the checkout API/, 'blocking question rendered inline');
+
+  const upNext = [...d.querySelectorAll('.plan-list .plan-row-title')].map(text);
+  assert.ok(upNext.includes('Paginate the catalog search endpoint'), 'todo item queued under Up next');
 });
 
 test('log entry page: superseded callout links to its replacement', () => {
@@ -144,6 +163,86 @@ test('tags page: counts exclude retired, zero-count tags shown', () => {
   assert.deepEqual(countIn('.tags-col-topics', 'auth'), { count: 0, zero: true });
 });
 
+// ---- plan collection -------------------------------------------------------
+
+test('plan browse: count strip, overall progress, and section membership', () => {
+  const d = parse('plan/index.html');
+
+  const counts = [...d.querySelectorAll('.count-strip .count')].map(text);
+  assert.deepEqual(counts, ['2 doing', '1 blocked', '1 todo', '1 done', '1 dropped']);
+
+  // Overall progress excludes dropped: 1 done of the 5 non-dropped items.
+  assert.match(text(d.querySelector('.overall-label')), /1 of 5 done/);
+
+  const sectionTitles = (key) => {
+    const sec = d.querySelector(`.plan-section[data-section="${key}"]`);
+    return [...sec.querySelectorAll('.plan-row-title')].map(text).sort();
+  };
+  assert.deepEqual(sectionTitles('in-flight'),
+    ['Spike per-user vs per-IP limiting', 'Wire up the checkout rate limiter']);
+  assert.deepEqual(sectionTitles('blocked'), ['Choose the checkout rate-limit key']);
+  assert.deepEqual(sectionTitles('up-next'), ['Paginate the catalog search endpoint']);
+  assert.deepEqual(sectionTitles('done'), ['Ship the billing webhook retries']);
+  assert.deepEqual(sectionTitles('dropped'), ['Build a bespoke per-tenant schema']);
+});
+
+test('plan browse: blocked derived from open question_ref; answers does not block', () => {
+  const d = parse('plan/index.html');
+  const rowByTitle = (t) =>
+    [...d.querySelectorAll('.plan-row')].find((r) => text(r.querySelector('.plan-row-title')) === t);
+
+  // P-003: status doing but question_ref -> open Q-001, so it derives blocked.
+  const p3 = rowByTitle('Choose the checkout rate-limit key');
+  assert.equal(p3.dataset.blocked, 'true');
+  assert.ok(p3.querySelector('.status-dot').classList.contains('is-blocked'));
+  assert.equal(text(p3.querySelector('.plan-status-label')), 'blocked');
+
+  // P-006: answers Q-001 (a spike) is the opposite relation, not blocked.
+  const p6 = rowByTitle('Spike per-user vs per-IP limiting');
+  assert.equal(p6.dataset.blocked, 'false');
+  assert.ok(p6.querySelector('.status-dot').classList.contains('is-doing'));
+
+  // Checklist progress renders n/m from the body.
+  assert.equal(text(rowByTitle('Wire up the checkout rate limiter').querySelector('.progress-count')), '2/4');
+});
+
+test('plan browse: README is excluded by the P-*.md glob', () => {
+  const d = parse('plan/index.html');
+  const rows = [...d.querySelectorAll('.plan-row')];
+  assert.equal(rows.length, 6, 'exactly the 6 P-*.md items, plan/README.md not collected');
+  assert.ok(!rows.map((r) => text(r.querySelector('.plan-row-title'))).some((t) => /readme|fixture/i.test(t)));
+});
+
+test('plan detail: progress, metadata, and decision cross-reference', () => {
+  const d = parse('plan/P-004/index.html');
+  assert.equal(text(d.querySelector('.detail-title')), 'Ship the billing webhook retries');
+  assert.match(text(d.querySelector('.progress-count')), /3 of 3 done/);
+  assert.ok(d.querySelector('.plan-detail-head .status-dot').classList.contains('is-done'));
+
+  const ref = d.querySelector('.ref-list a');
+  assert.equal(ref.getAttribute('href'), '/log/2026-01-01-active-example');
+  assert.equal(text(ref), 'Active example decision', 'decision_ref resolves to the log title');
+});
+
+test('plan detail: blocked item callout links its open question', () => {
+  const d = parse('plan/P-003/index.html');
+  const callout = d.querySelector('.callout-blocked');
+  assert.ok(callout, 'blocked callout present');
+  assert.match(text(callout), /Q-001/);
+  assert.match(text(callout), /rate-limit the checkout API/, 'question text surfaced inline');
+});
+
+test('plan detail: dropped item shown (not hidden) with reason and retired-by link', () => {
+  const d = parse('plan/P-005/index.html');
+  assert.ok(d.querySelector('.plan-detail.is-dropped'), 'dropped items are dimmed, not removed');
+  assert.ok(d.querySelector('.callout.callout-obs'), 'dropped callout');
+  assert.match(text(d.querySelector('.dropped-reason')), /row-level security/);
+
+  const kinds = [...d.querySelectorAll('.ref-kind')].map(text);
+  assert.ok(kinds.includes('Retired by'), 'decision_ref reads as "Retired by" on a dropped item');
+  assert.equal(d.querySelector('.ref-list a').getAttribute('href'), '/log/2026-01-03-replacement-example');
+});
+
 // ---- client-side filters (scripts executed by jsdom) -----------------------
 
 test('questions filter: resolved tab and no-results search', () => {
@@ -207,4 +306,24 @@ test('log filter: ?area= URL param pre-selects and actually filters', () => {
   assert.equal(shown.length, 1);
   assert.ok(shown[0].dataset.areas.split(',').includes('catalog'));
   assert.equal(shown[0].dataset.status, 'active');
+});
+
+test('plan filter: dropped hidden by default, shown via toggle, and area narrows', () => {
+  const { window } = new JSDOM(html('plan/index.html'), { runScripts: 'dangerously' });
+  const d = window.document;
+
+  const droppedSection = d.querySelector('.plan-section[data-section="dropped"]');
+  assert.ok(droppedSection.hidden, 'dropped section hidden on load');
+
+  const toggle = d.getElementById('dropped-toggle');
+  toggle.checked = true;
+  toggle.dispatchEvent(new window.Event('input', { bubbles: true }));
+  assert.ok(!droppedSection.hidden, 'dropped section shown after toggling show-dropped');
+
+  const area = d.getElementById('plan-area');
+  area.value = 'billing';
+  area.dispatchEvent(new window.Event('input', { bubbles: true }));
+  const shown = visible([...d.querySelectorAll('.plan-row')]);
+  assert.equal(shown.length, 1, 'only the billing item matches');
+  assert.equal(text(shown[0].querySelector('.plan-row-title')), 'Ship the billing webhook retries');
 });

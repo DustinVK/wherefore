@@ -33,11 +33,10 @@ Status: done. Serves: G2.
 0.1.0 published (MIT) and verified working from a clean external install.
 
 ### M2: 0.1.1 polish patch
-Status: active. Serves: G2.
+Status: done. Serves: G2.
 README rewrite, build-command preview-locally hint, Vite `server.fs.allow` fix for the
-cross-directory dev errors, tsconfig plus @types/node (done). Deferred: blurry 16px
-favicon. Confirm against `npm view` whether this has already shipped, and flip to done
-if so.
+cross-directory dev errors, tsconfig plus @types/node. Shipped: 0.1.1 published to npm
+(0.1.2 and 0.2.0 followed). Deferred: blurry 16px favicon.
 
 ### M3: Thin launcher published
 Status: planned. Serves: G1.
@@ -46,10 +45,11 @@ runs the real tool while `@dustinvk/wherefore-dashboard` stays the versioned sou
 truth.
 
 ### M4: Plan layer shipped
-Status: active. Serves: G2.
-The `P-NNN` plan collection, the `/wherefore:slate` verb, dashboard rendering of plan
-items, and this roadmap. Currently dogfooding the frontmatter contract by hand before
-wiring the loader and the skill.
+Status: done. Serves: G2.
+The `P-NNN` plan collection, the `/wherefore:slate` verb, and dashboard rendering of
+plan items all shipped (slate in plugin 0.2.0; plan views on the current dashboard),
+plus this roadmap as the milestone layer. Deferred: milestone grouping in the dashboard
+(P-011), picked up once items carry milestones.
 
 ### M5: Live demo at wherefore.dev
 Status: planned. Serves: G3.

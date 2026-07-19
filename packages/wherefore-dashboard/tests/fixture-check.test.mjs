@@ -77,12 +77,57 @@ test('question fixtures -- status values are valid', () => {
   }
 });
 
+const planItemFiles = () =>
+  readdirSync(resolve(FIXTURE, 'plan')).filter(f => f.startsWith('P-') && f.endsWith('.md'));
+
+test('plan fixtures -- required frontmatter keys', () => {
+  const required = ['id', 'title', 'status', 'created'];
+  const files = planItemFiles();
+
+  assert.ok(files.length >= 4, `Expected >= 4 plan items, got ${files.length}`);
+
+  for (const file of files) {
+    const keys = frontmatterKeys(readFileSync(resolve(FIXTURE, 'plan', file), 'utf-8'));
+    for (const key of required) {
+      assert.ok(keys.includes(key), `${file}: missing frontmatter key "${key}"`);
+    }
+  }
+});
+
+test('plan fixtures -- status values are valid', () => {
+  const valid = new Set(['todo', 'doing', 'done', 'dropped']);
+  for (const file of planItemFiles()) {
+    const content = readFileSync(resolve(FIXTURE, 'plan', file), 'utf-8');
+    const match = content.match(/^status:\s*(.+)$/m);
+    assert.ok(match, `${file}: no status line found`);
+    const status = match[1].trim();
+    assert.ok(valid.has(status), `${file}: invalid status "${status}" (expected todo|doing|done|dropped)`);
+  }
+});
+
+test('plan fixtures -- dropped item carries a reason or decision_ref', () => {
+  for (const file of planItemFiles()) {
+    const content = readFileSync(resolve(FIXTURE, 'plan', file), 'utf-8');
+    const status = content.match(/^status:\s*(.+)$/m)?.[1].trim();
+    if (status !== 'dropped') continue;
+    assert.ok(
+      /^dropped_reason:\s*\S/m.test(content) || /^decision_ref:\s*\S/m.test(content),
+      `${file}: a dropped item needs a dropped_reason or decision_ref`,
+    );
+  }
+});
+
 test('fixture counts match expected', () => {
   const logFiles = readdirSync(resolve(FIXTURE, 'log')).filter(f => f.endsWith('.md'));
   const qFiles = readdirSync(resolve(FIXTURE, 'questions')).filter(f => f.endsWith('.md'));
 
   assert.equal(logFiles.length, 4, `Expected 4 log entries`);
   assert.equal(qFiles.length, 3, `Expected 3 questions`);
+  assert.equal(planItemFiles().length, 6, `Expected 6 plan items`);
+
+  // plan/README.md exists but must be excluded from the collection by the P-*.md glob.
+  const planAll = readdirSync(resolve(FIXTURE, 'plan')).filter(f => f.endsWith('.md'));
+  assert.ok(planAll.includes('README.md'), 'plan/README.md present (excluded by the P-*.md glob)');
 
   const statuses = logFiles.map(f => {
     const content = readFileSync(resolve(FIXTURE, 'log', f), 'utf-8');

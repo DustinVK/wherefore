@@ -1,11 +1,12 @@
 ---
 id: P-002
 title: Add plan collection to the dashboard
-status: todo
+status: done
 created: 2026-07-03
+updated: 2026-07-19
 area: dashboard
 topics: [astro, schema]
-decision_ref: 2026-07-03-companion-plan-collection
+decision_ref: 2026-07-03-plan-directory, 2026-07-19-dashboard-plan-collection
 ---
 
 Astro loader plus route for wherefore/plan/, mirroring the questions collection. Derive
