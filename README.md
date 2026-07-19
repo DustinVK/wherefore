@@ -88,7 +88,7 @@ maintained.
   replacement) or obsolete, without requiring a new discussion to be captured.
   Updates the entry file and adds a visible banner so both the `ask` skill and
   human readers see it is retired.
-- **`plan`** -- tracks forward-looking work items in `wherefore/plan/`, one file per
+- **`slate`** -- tracks forward-looking work items in `wherefore/plan/`, one file per
   item (`P-NNN-short-slug.md`). One verb, four intents detected from your request:
   open a new item (broken into concrete checkboxes), advance one along
   `todo -> doing -> done`, drop one you've abandoned (with a reason, never deleted),
@@ -240,7 +240,7 @@ file and annotates the source entry so the audit trail is complete.
 `supersede` retires entries after the fact, `ask` follows chains to the active
 answer.
 
-**Plan lifecycle:** `plan` opens forward-looking items, advances them
+**Plan lifecycle:** `slate` opens forward-looking items, advances them
 `todo -> doing -> done`, and drops the ones you abandon; `capture` hands off to it
 when a decision implies committed work, rather than inventing plan items itself.
 
@@ -275,7 +275,7 @@ wherefore/
 │           │   └── SKILL.md           # close out open questions
 │           ├── supersede/
 │           │   └── SKILL.md           # retire decisions (superseded or obsolete)
-│           └── plan/
+│           └── slate/
 │               └── SKILL.md           # track forward-looking plan items
 └── README.md
 ```

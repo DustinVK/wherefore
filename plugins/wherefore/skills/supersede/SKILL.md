@@ -19,8 +19,8 @@ truth.
 
 This skill is the only writer of decision status. Plan items have their own status
 machine (`todo`/`doing`/`done`/`dropped`) that never touches a decision's status; if
-any plan flow needs to retire or replace a decision, it routes here, not through the
-`plan` skill.
+work in the `slate` skill needs to retire or replace a decision, it routes here, not
+through `slate`.
 
 No em dashes. Periods, commas, colons, semicolons, or parentheses instead. Firm project rule.
 

@@ -67,7 +67,7 @@ approval; wait for their reply before writing anything.
   does not), scaffold the `plan/` collection: create `wherefore/plan/` and write
   `wherefore/plan/README.md` with exactly the content below. The loader globs
   `plan/P-*.md`, so this `README.md` is never collected as an item. Do NOT write any
-  P-item; opening items is the `plan` skill's job.
+  P-item; opening items is the `slate` skill's job.
 
   ````markdown
   # Plan collection (`wherefore/plan/`)
@@ -107,7 +107,7 @@ approval; wait for their reply before writing anything.
   | `answers`       | no  | `Q-NNN`           | a single question this item is the work of answering (spike)|
   | `dropped_reason`| no  | string            | lightweight why, used when `status: dropped`                |
 
-  Body: freeform. The `plan` skill breaks the work into `- [ ]` checkboxes by default
+  Body: freeform. The `slate` skill breaks the work into `- [ ]` checkboxes by default
   (steps concrete enough to check off); prose stays valid, and older items may be
   prose-only.
 
@@ -142,17 +142,17 @@ approval; wait for their reply before writing anything.
 
   ## Boundaries
 
-  - The `plan` skill writes only `wherefore/plan/*`. Never `log/`, never `questions/`,
+  - The `slate` skill writes only `wherefore/plan/*`. Never `log/`, never `questions/`,
     never `ROADMAP.md`.
   - Durable why belongs in the decision layer: when a plan item's rationale is really a
     decision, that is a `capture`; when a direction changes for a reason worth keeping,
     that is a `supersede` on the decision, and the plan item flips to `dropped` carrying
     `decision_ref` to it.
   - `capture` never creates plan items and never writes plan status directly; it may hand
-    off to the `plan` skill. The `plan` skill records that something changed; the decision
+    off to the `slate` skill. The `slate` skill records that something changed; the decision
     layer owns the durable why.
 
-  Maintained by the [wherefore](https://github.com/DustinVK/wherefore) plan skill.
+  Maintained by the [wherefore](https://github.com/DustinVK/wherefore) slate skill.
   ````
 
 Finish with a one-line summary of what was written and where.

@@ -1,6 +1,6 @@
 ---
 id: P-004
-title: Author the plan skill
+title: Author the slate skill
 status: done
 created: 2026-07-18
 updated: 2026-07-18
@@ -9,7 +9,7 @@ topics: [skill-structure]
 decision_ref: 2026-07-03-plan-directory, 2026-07-18-capture-does-not-write-plan-items
 ---
 
-Build the wherefore plan skill: one verb, four intents detected from the request, not
+Build the wherefore slate skill: one verb, four intents detected from the request, not
 subcommands. Mirror the sibling skills in structure and tone.
 
 - [x] SKILL.md frontmatter (name plus folded description) and a 3 to 5 line mission, no allowed-tools, matching capture/ask/resolve/supersede.

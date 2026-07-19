@@ -187,9 +187,9 @@ scalar to a one-line summary and move the detail into a body section.
     - If the decision implies new work, name the pieces you would open.
     You distilled, tagged, and propose these plan links on the user's behalf, so let them correct all of it before it ossifies. `ask` derives everything from the frontmatter you just wrote.
 
-12. Act on the confirmed plan links, but never create or mutate `plan/` from here; hand off to the `plan` skill. Capture owns `log/`, `plan` owns `plan/`.
-    - Confirmed close: hand off to `plan` advance to set that item `status: done` and add `decision_ref: <this-slug>`. The handoff marks capture as the driver, so `plan` advance suppresses its return capture offer (this decision is already being captured) and the path does not loop. Safe because it resolves a commitment already made, it does not invent one.
-    - Confirmed new work: hand off to `plan` open, with `decision_ref: <this-slug>` set on each item.
+12. Act on the confirmed plan links, but never create or mutate `plan/` from here; hand off to the `slate` skill. Capture owns `log/`, `slate` owns `plan/`.
+    - Confirmed close: hand off to `slate` advance to set that item `status: done` and add `decision_ref: <this-slug>`. The handoff marks capture as the driver, so `slate` advance suppresses its return capture offer (this decision is already being captured) and the path does not loop. Safe because it resolves a commitment already made, it does not invent one.
+    - Confirmed new work: hand off to `slate` open, with `decision_ref: <this-slug>` set on each item.
     On no confirmation, write nothing to `plan/`. Never auto-emit plan items and never auto-close them: manufacturing or silently closing commitments nobody chose is the rot the plan collection exists to avoid (decision `2026-07-18-capture-does-not-write-plan-items`).
 
 ## Examples

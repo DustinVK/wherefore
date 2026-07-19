@@ -134,7 +134,7 @@ fabricate an answer.
 8. **Offer to link a blocking question to a plan item.** When a question surfaced
    above (or one the user just raised) blocks work in flight, offer to attach it as a
    `question_ref` on the relevant plan item. The link is one-way, from the plan item
-   to the question. Making the attachment is a `plan` operation (its advance intent);
+   to the question. Making the attachment is a `slate` operation (its advance intent);
    `ask` only offers it and does not write `plan/` itself. Optionally, when the user
    is clearly asking about in-flight work, surface matching plan items alongside the
    open questions, still read-only, by dumping `wherefore/plan/P-*.md` frontmatter the

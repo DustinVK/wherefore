@@ -47,7 +47,7 @@ truth.
 
 ### M4: Plan layer shipped
 Status: active. Serves: G2.
-The `P-NNN` plan collection, the `/wherefore:plan` verb, dashboard rendering of plan
+The `P-NNN` plan collection, the `/wherefore:slate` verb, dashboard rendering of plan
 items, and this roadmap. Currently dogfooding the frontmatter contract by hand before
 wiring the loader and the skill.
 

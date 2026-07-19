@@ -1,16 +1,17 @@
 ---
-name: plan
+name: slate
 description: >
-  Manage forward-looking plan items in the team's wherefore plan collection. Use
-  whenever the user wants to open a new plan item, advance one along (todo to doing
-  to done), drop one, or ask what they are working on, e.g. "add a plan item for X",
-  "start on P-101", "mark P-102 done", "what's on the plan", "what am I working on",
-  "drop P-103, we're not doing it", or invoke "/wherefore:plan". Detects the intent
-  from the request rather than taking subcommands. Breaks work into concrete
-  checkboxes on open; never bulk-generates plan items from a vague prompt.
+  Operate the wherefore plan collection: the forward-looking work items in
+  wherefore/plan/. Use whenever the user wants to open a new plan item, move one
+  along (todo to doing to done), drop one, or see what is in flight, e.g. "add a
+  plan item for X", "open a plan item to migrate auth", "start on P-011", "mark
+  P-012 done", "what am I working on", "what is on the plan", "drop P-007, we're not
+  doing it", or invoke "/wherefore:slate". Detects the intent from the request rather
+  than taking subcommands. Breaks work into concrete checkboxes on open; never
+  bulk-generates items from a vague prompt.
 ---
 
-# Wherefore: plan
+# Wherefore: slate
 
 Operate the wherefore plan collection: forward-looking work items, one file each,
 tracking what is committed and how far along it is. A plan item is a commitment, not
@@ -173,7 +174,7 @@ done
    - If the item carries `answers: Q-NNN` (a spike), the capture offer above still
      applies, and additionally offer to resolve that answered question via `resolve`. Do
      not resolve it silently; finishing the investigation is not the same as having an
-     answer. This handoff marks `plan` as the driver, so `resolve` suppresses its return
+     answer. This handoff marks `slate` as the driver, so `resolve` suppresses its return
      offer to advance this item, the same way capture-driven advance suppresses its capture
      offer.
 7. To block an item, attach a `question_ref` to the open question it waits on. If that

@@ -81,16 +81,16 @@ summary and move detail into a `## Resolution` body section. `status` and
      anything. Then:
      - Unblocked: items whose `question_ref` is the ID you just resolved just became
        unblocked. Tell the user; do not change their status. The item stays where it is
-       until someone advances it through the `plan` skill.
+       until someone advances it through the `slate` skill.
      - Answered: items whose `answers` is that ID just accomplished their purpose (the
        spike that was investigating it). Report them and offer to advance them to `done`
-       through the `plan` skill. Do not advance them silently, and do not advance them
+       through the `slate` skill. Do not advance them silently, and do not advance them
        here yourself.
-     - Break the loop: if the `plan` skill drove this resolve (its advance intent handed
+     - Break the loop: if the `slate` skill drove this resolve (its advance intent handed
        off here to close the question a finishing spike answered), suppress the offer to
-       advance those items. `plan` is already advancing the item; offering to advance it
-       back would loop. This mirrors how `plan` advance suppresses its capture offer when
-       capture is the driver. Reading `plan/` here does not compromise `plan`'s sole
+       advance those items. `slate` is already advancing the item; offering to advance it
+       back would loop. This mirrors how `slate` advance suppresses its capture offer when
+       capture is the driver. Reading `plan/` here does not compromise `slate`'s sole
        ownership of it; nothing is written.
 
 ## Examples
