@@ -15,6 +15,10 @@ Close out an open question by updating its individual file in
 any) contains the full context. The file's frontmatter is the single source of
 truth.
 
+No em dashes. Periods, commas, colons, semicolons, or parentheses instead. Firm project rule.
+
+Never delete anything under a `wherefore/` data dir. Retire, do not delete.
+
 ## Frontmatter safety
 
 When you fill `resolution`, emit it as a double-quoted, single-line string, escaping
@@ -71,6 +75,23 @@ summary and move detail into a `## Resolution` body section. `status` and
    - Which files were touched
    - Whether any related questions still `open` share the same areas (dump the
      question frontmatter to check), as a nudge; don't resolve them automatically
+   - Plan items this resolution touches. Dump `wherefore/plan/P-*.md` frontmatter
+     (`resolve` reads only `question_ref`, `answers`, and `status` and writes nothing to
+     `plan/`). Skip any item whose `status` is `dropped`; a dropped item is not waiting on
+     anything. Then:
+     - Unblocked: items whose `question_ref` is the ID you just resolved just became
+       unblocked. Tell the user; do not change their status. The item stays where it is
+       until someone advances it through the `slate` skill.
+     - Answered: items whose `answers` is that ID just accomplished their purpose (the
+       spike that was investigating it). Report them and offer to advance them to `done`
+       through the `slate` skill. Do not advance them silently, and do not advance them
+       here yourself.
+     - Break the loop: if the `slate` skill drove this resolve (its advance intent handed
+       off here to close the question a finishing spike answered), suppress the offer to
+       advance those items. `slate` is already advancing the item; offering to advance it
+       back would loop. This mirrors how `slate` advance suppresses its capture offer when
+       capture is the driver. Reading `plan/` here does not compromise `slate`'s sole
+       ownership of it; nothing is written.
 
 ## Examples
 

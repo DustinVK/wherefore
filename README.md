@@ -46,8 +46,8 @@ just files in your repo, any tool or any person can read it.
 There are a few ways to work with it:
 
 - **A Claude Code plugin** (the richest experience): skills that capture, query,
-  resolve, and supersede decisions, with Claude handling the tagging and bookkeeping
-  so the log actually gets maintained.
+  resolve, and supersede decisions and track forward-looking plan items, with Claude
+  handling the tagging and bookkeeping so the log actually gets maintained.
 - **The `wherefore` CLI** ([`wherefore`](https://www.npmjs.com/package/wherefore) on
   npm): `npx wherefore init` scaffolds the log and an `AGENTS.md`, and
   `npx wherefore dashboard` launches the dashboard. It can also install the skills for
@@ -88,6 +88,13 @@ maintained.
   replacement) or obsolete, without requiring a new discussion to be captured.
   Updates the entry file and adds a visible banner so both the `ask` skill and
   human readers see it is retired.
+- **`slate`** -- tracks forward-looking work items in `wherefore/plan/`, one file per
+  item (`P-NNN-short-slug.md`). One verb, four intents detected from your request:
+  open a new item (broken into concrete checkboxes), advance one along
+  `todo -> doing -> done`, drop one you've abandoned (with a reason, never deleted),
+  or read back what's on the plan. It owns `plan/` and hands off to `capture` and
+  `ask` rather than writing decisions or questions itself, so the plan never fills
+  with commitments nobody made.
 - **`/wherefore:seed`** -- inspects the codebase and proposes a starter set of areas
   and topics for `wherefore/topics.md`, with a short justification for each tag.
   Confirm or edit its proposal and it writes (or merges into) the file.
@@ -100,9 +107,10 @@ consuming project's repo, version-controlled and PR-reviewable next to the code.
 ## Other coding agents
 
 The `wherefore/` log is plain markdown, so it is not tied to any one tool. An
-`AGENTS.md` at the repo root describes the format and the capture, supersede, and
-question workflows, so coding agents that read AGENTS.md (Codex, GitHub Copilot,
-Cursor, Gemini, and others) can read and maintain the log by following the spec.
+`AGENTS.md` at the repo root describes the format and the capture, supersede,
+question, and plan workflows, so coding agents that read AGENTS.md (Codex, GitHub
+Copilot, Cursor, Gemini, and others) can read and maintain the log by following the
+spec.
 
 The Claude Code plugin remains the richest experience: it handles tagging,
 supersession detection, multi-thread splitting, and the question lifecycle for you.
@@ -232,6 +240,10 @@ file and annotates the source entry so the audit trail is complete.
 `supersede` retires entries after the fact, `ask` follows chains to the active
 answer.
 
+**Plan lifecycle:** `slate` opens forward-looking items, advances them
+`todo -> doing -> done`, and drops the ones you abandon; `capture` hands off to it
+when a decision implies committed work, rather than inventing plan items itself.
+
 ## Repo layout
 
 ```
@@ -261,8 +273,10 @@ wherefore/
 │           │   └── SKILL.md           # query skill
 │           ├── resolve/
 │           │   └── SKILL.md           # close out open questions
-│           └── supersede/
-│               └── SKILL.md           # retire decisions (superseded or obsolete)
+│           ├── supersede/
+│           │   └── SKILL.md           # retire decisions (superseded or obsolete)
+│           └── slate/
+│               └── SKILL.md           # track forward-looking plan items
 └── README.md
 ```
 
@@ -272,10 +286,12 @@ Each consuming project's log lives in its own repo, not here:
 <your-project>/
 └── wherefore/
     ├── topics.md         # controlled tag vocabulary (areas + topics)
+    ├── log/
+    │   └── YYYY-MM-DD-short-slug.md   # one file per independently-queryable thread
     ├── questions/
     │   └── Q-NNN-short-slug.md    # one file per question (ID prefix + scannable slug)
-    └── log/
-        └── YYYY-MM-DD-short-slug.md   # one file per independently-queryable thread
+    └── plan/
+        └── P-NNN-short-slug.md    # one file per forward-looking plan item
 ```
 
 Entry and question frontmatter is the single source of truth, and the skills

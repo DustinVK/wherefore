@@ -19,6 +19,10 @@ they actually say. The cardinal rule: **ground every answer in entries that
 exist.** If the wherefore has nothing on the topic, say so: a confident answer
 assembled from nothing is worse than "I didn't find anything about that."
 
+No em dashes. Periods, commas, colons, semicolons, or parentheses instead. Firm project rule.
+
+Never delete anything under a `wherefore/` data dir. Retire, do not delete.
+
 ## Storage layout
 
 The wherefore lives under a repo-relative `wherefore/` directory:
@@ -121,6 +125,25 @@ fabricate an answer.
    Only show open questions; skip resolved ones unless the user explicitly asks
    (e.g. "what was Q-007?" or "show resolved questions too"). If no open questions
    match, omit the section entirely; do not add noise.
+   When you dump the question frontmatter, also dump `wherefore/plan/P-*.md` frontmatter
+   and cross-check `answers`: if a plan item carries `answers: <this Q-NNN>`, the question
+   is being actively investigated (a spike), not sitting untouched. Note it inline, e.g.
+   "Q-007 (P-012 is investigating this, status doing)". That is exactly when the user needs
+   to know work is already underway. Read-only; `ask` still writes nothing.
+
+8. **Offer to link a blocking question to a plan item.** When a question surfaced
+   above (or one the user just raised) blocks work in flight, offer to attach it as a
+   `question_ref` on the relevant plan item. The link is one-way, from the plan item
+   to the question. Making the attachment is a `slate` operation (its advance intent);
+   `ask` only offers it and does not write `plan/` itself. Optionally, when the user
+   is clearly asking about in-flight work, surface matching plan items alongside the
+   open questions, still read-only, by dumping `wherefore/plan/P-*.md` frontmatter the
+   same cheap way and filtering on `area` and status.
+
+   Plan fields `ask` relies on: `status` (to tell in-flight from untouched), `question_ref`
+   (blocked is derived from it and never stored), and `answers` (the opposite direction, a
+   spike investigating the question). `ask` never writes plan files, so it needs none of the
+   plan key order or quoting rules.
 
 ## Answering style
 

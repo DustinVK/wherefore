@@ -18,6 +18,10 @@ Preserve the useful residue (what was decided, why, and what was rejected), not 
 transcript. Months later, someone asking "why did we build it this way?" should get
 the answer in a few sentences.
 
+No em dashes. Periods, commas, colons, semicolons, or parentheses instead. Firm project rule.
+
+Never delete anything under a `wherefore/` data dir. Retire, do not delete.
+
 ## Writing style
 
 The record must read well as a raw markdown file, not just in the dashboard. Editors
@@ -143,7 +147,12 @@ scalar to a one-line summary and move the detail into a body section.
 8. Write `wherefore/log/YYYY-MM-DD-short-slug.md`. Slug short, lowercase, hyphenated, recognizable (`oauth-token-refresh`, not `discussion-about-the-auth-stuff`). If the name exists, add a short suffix; never overwrite.
 
 9. Register open questions. For each genuine unresolved item:
-    - Next Q-ID = (highest `id:` across `wherefore/questions/Q-*.md`) + 1. Derive it from the files, e.g. `ls wherefore/questions/Q-*.md 2>/dev/null | sed -E 's|.*/Q-0*([0-9]+).*|\1|' | sort -n | tail -1`. If the directory is empty or absent, start at Q-001. IDs are sequential and never reused. (The regex tolerates both the legacy `Q-NNN.md` and the current `Q-NNN-slug.md` naming.)
+    - Next Q-ID = (highest `id:` across `wherefore/questions/Q-*.md`) + 1. Read the authoritative `id:` from each file's frontmatter, not the filename: `id:` is the source of truth and the filename slug is only browsability sugar, so allocating off filenames is how duplicate IDs get created.
+      ```bash
+      for f in wherefore/questions/Q-*.md; do awk -F': *' '/^id:/{print $2; exit}' "$f"; done 2>/dev/null \
+        | sed -E 's/Q-0*([0-9]+)/\1/' | sort -n | tail -1
+      ```
+      If the directory is empty or absent, start at Q-001. IDs are sequential and never reused.
     - Prefix the entry's item with the ID: `- Q-001: How should we ...`
     - Create `wherefore/questions/Q-NNN-short-slug.md`, leaving `resolution` and `resolution_slug` blank. Name it like a log entry: `Q-` + the zero-padded ID + a short, lowercase, hyphenated slug distilled from the question (`Q-001-eu-buyer-tax`, not `Q-001-question-about-tax-stuff`). The `Q-NNN` prefix keeps questions sorted and greppable by number; the slug is for human scanning; the authoritative ID is always the `id:` frontmatter field.
       ```
@@ -166,7 +175,22 @@ scalar to a one-line summary and move the detail into a body section.
     - For each confirmed: set the Q file `status: resolved`, fill `resolution` (one quoted sentence), set `resolution_slug` to the new slug. Report closures.
     - No match: skip silently.
 
-11. Report back. Show the title, assigned areas and topics (flag any new tag), linked stories, any supersession applied, and any Q-IDs assigned or closed. This is the approval moment: you distilled and tagged on the user's behalf, so let them correct it before it ossifies. `ask` derives everything from the frontmatter you just wrote.
+11. Report back and confirm. This is the approval moment. Show the title, assigned areas and topics (flag any new tag), linked stories, any supersession applied, and any Q-IDs assigned or closed. Then fold plan links into the same approval: dump plan frontmatter the cheap way and shortlist by area overlap, exactly as step 10 shortlists questions.
+    ```bash
+    for f in wherefore/plan/P-*.md; do
+      awk -v F="$f" 'BEGIN{print "=== " F " ==="}
+        /^---[[:space:]]*$/ { n++; if (n==2) exit; next }
+        n==1 { print }' "$f"
+    done
+    ```
+    - If the decision plainly resolves a shortlisted open plan item, name it as a candidate to close. Do not close on inference; plan items get the same ask-first standard step 10 gives questions.
+    - If the decision implies new work, name the pieces you would open.
+    You distilled, tagged, and propose these plan links on the user's behalf, so let them correct all of it before it ossifies. `ask` derives everything from the frontmatter you just wrote.
+
+12. Act on the confirmed plan links, but never create or mutate `plan/` from here; hand off to the `slate` skill. Capture owns `log/`, `slate` owns `plan/`.
+    - Confirmed close: hand off to `slate` advance to set that item `status: done` and add `decision_ref: <this-slug>`. The handoff marks capture as the driver, so `slate` advance suppresses its return capture offer (this decision is already being captured) and the path does not loop. Safe because it resolves a commitment already made, it does not invent one.
+    - Confirmed new work: hand off to `slate` open, with `decision_ref: <this-slug>` set on each item.
+    On no confirmation, write nothing to `plan/`. Never auto-emit plan items and never auto-close them: manufacturing or silently closing commitments nobody chose is the rot the plan collection exists to avoid (decision `2026-07-18-capture-does-not-write-plan-items`).
 
 ## Examples
 
