@@ -28,7 +28,7 @@ why, and what was ruled out.
 **3. (Optional) Browse it as a dashboard:**
 
 ```
-npx @dustinvk/wherefore-dashboard dev
+npx wherefore dashboard dev
 ```
 
 This renders your `wherefore/` directory as a local site. No install needed.
@@ -120,16 +120,18 @@ tools and the log stays consistent.
 
 ## The dashboard
 
-[`@dustinvk/wherefore-dashboard`](https://www.npmjs.com/package/@dustinvk/wherefore-dashboard)
-renders your `wherefore/` directory as a browsable static site. No install needed:
+`npx wherefore dashboard` renders your `wherefore/` directory as a browsable static
+site. No install needed:
 
 ```
-npx @dustinvk/wherefore-dashboard dev
+npx wherefore dashboard dev     # live, hot-reloading
+npx wherefore dashboard build   # static site to ./dist
 ```
 
-from any directory containing a `wherefore/` folder. See the
-[package README](packages/wherefore-dashboard/README.md) for build options, local
-preview, and deploying to Cloudflare Pages.
+from any directory containing a `wherefore/` folder. `dashboard` is a thin launcher
+for [`@dustinvk/wherefore-dashboard`](https://www.npmjs.com/package/@dustinvk/wherefore-dashboard);
+see the [package README](packages/wherefore-dashboard/README.md) for build options,
+local preview, and deploying to Cloudflare Pages.
 
 Running several projects at the same time? See
 [Running several projects at once](packages/wherefore-dashboard/README.md#running-several-projects-at-once)
