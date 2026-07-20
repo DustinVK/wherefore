@@ -1,8 +1,9 @@
 ---
 id: P-011
 title: Group the Plan browse by milestone
-status: todo
+status: doing
 created: 2026-07-19
+updated: 2026-07-19
 area: dashboard
 topics: [ui]
 decision_ref: 2026-07-19-dashboard-plan-collection
