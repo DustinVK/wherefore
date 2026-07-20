@@ -1,6 +1,6 @@
 {
   "name": "wherefore",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Capture and browse a repo-committed decision log. Scaffolds wherefore/, writes AGENTS.md, and installs skills for your coding agent.",
   "author": "Dustin VanKrimpen",
   "license": "MIT",
